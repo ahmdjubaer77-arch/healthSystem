@@ -9,6 +9,25 @@ test('accepts the configured client origin exactly', () => {
   )
 })
 
+test('accepts the configured Vercel production origin exactly', () => {
+  assert.equal(
+    isAllowedClientOrigin(
+      'https://health-system-iota.vercel.app',
+      'https://health-system-iota.vercel.app',
+      'production',
+    ),
+    true,
+  )
+  assert.equal(
+    isAllowedClientOrigin(
+      'https://another-site.vercel.app',
+      'https://health-system-iota.vercel.app',
+      'production',
+    ),
+    false,
+  )
+})
+
 test('accepts localhost aliases only in development when protocol and port match', () => {
   assert.equal(
     isAllowedClientOrigin('http://127.0.0.1:5173', 'http://localhost:5173', 'development'),

@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const healthRoutes = require('./routes/health.routes')
 const authRoutes = require('./routes/auth.routes')
 const adminRoutes = require('./routes/admin.routes')
@@ -39,24 +40,15 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use((req, res, next) => {
-  const clientUrl = process.env.CLIENT_URL
-  const origin = req.get('origin')
-
-  if (isAllowedClientOrigin(origin, clientUrl)) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Vary', 'Origin')
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Request-ID')
-    res.setHeader('Access-Control-Expose-Headers', 'X-Request-ID')
-  }
-
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204)
-  }
-
-  next()
-})
+app.use(cors({
+  origin(origin, callback) {
+    callback(null, isAllowedClientOrigin(origin, process.env.CLIENT_URL))
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  exposedHeaders: ['X-Request-ID'],
+  optionsSuccessStatus: 204,
+}))
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
