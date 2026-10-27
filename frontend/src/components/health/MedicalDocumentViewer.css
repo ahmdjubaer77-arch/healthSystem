@@ -1,0 +1,10 @@
+:root[data-theme='light'] .medical-document-viewer .text-white,
+:root[data-theme='light'] .medical-document-viewer .text-slate-100,
+:root[data-theme='light'] .medical-document-viewer .text-slate-200,
+:root[data-theme='light'] .medical-document-viewer .text-slate-300 {
+  color: #e2e8f0 !important;
+}
+
+:root[data-theme='light'] .medical-document-viewer .text-amber-100 {
+  color: #fde68a !important;
+}

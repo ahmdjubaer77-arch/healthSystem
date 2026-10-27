@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071c2d" />
+    <script>
+      try {
+        const theme = localStorage.getItem('bdh_theme')
+        document.documentElement.dataset.theme = theme === 'light' || theme === 'dark'
+          ? theme
+          : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+      } catch {
+        // The application falls back to the system preference when storage is unavailable.
+      }
+    </script>
+    <meta
+      name="description"
+      content="Bangladesh Digital Health & Emergency Platform - prototype for health records, emergency assistance, and blood donor access."
+    />
+    <title>Bangladesh Digital Health & Emergency Platform</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
