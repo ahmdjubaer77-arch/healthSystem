@@ -16,6 +16,7 @@ import {
 import 'leaflet/dist/leaflet.css'
 import GlassCard from '../components/common/GlassCard'
 import SectionHeader from '../components/common/SectionHeader'
+import { API_BASE_URL } from '../services/api'
 
 const distanceOptions = [1, 5, 10, 20]
 const sortOptions = ['nearest', 'farthest']
@@ -81,7 +82,7 @@ function NearbyHospitals() {
       })
       if (query?.trim()) params.set('q', query.trim())
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/hospitals/nearby?${params.toString()}`, { signal })
+      const response = await fetch(`${API_BASE_URL}/hospitals/nearby?${params.toString()}`, { signal })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error('Unable to load nearby healthcare facilities.')
       setHospitals(result.data.hospitals)

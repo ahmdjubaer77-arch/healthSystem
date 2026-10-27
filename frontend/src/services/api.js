@@ -5,7 +5,12 @@ import {
 import { providerDirectory } from '../data/doctorMockData'
 import { createBearerHeaders } from '../utils/auth-headers'
 
-const API_BASE_URL = import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_URL
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '')
+export const API_BASE_URL = import.meta.env.DEV
+  ? '/api'
+  : configuredApiBaseUrl
+    ? (/\/api$/i.test(configuredApiBaseUrl) ? configuredApiBaseUrl : `${configuredApiBaseUrl}/api`)
+    : ''
 
 export const loginUser = async ({ email, password }) => {
   if (!API_BASE_URL) {

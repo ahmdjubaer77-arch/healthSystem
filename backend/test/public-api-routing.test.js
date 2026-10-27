@@ -1,7 +1,10 @@
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
 
-process.env.CLIENT_URL = 'https://health-system-iota.vercel.app'
+process.env.CLIENT_URL = [
+  'https://health-system-iota.vercel.app',
+  'https://health-system-kylcpdqp-jubaer-ahmed-s-projects.vercel.app',
+].join(',')
 
 const app = require('../src/app')
 const notFoundMiddleware = require('../src/middleware/notFound.middleware')
@@ -64,7 +67,7 @@ test('OPTIONS preflight allows the configured production origin and requested AP
   const result = invokeCors({
     method: 'OPTIONS',
     headers: {
-      origin: 'https://health-system-iota.vercel.app',
+      origin: 'https://health-system-kylcpdqp-jubaer-ahmed-s-projects.vercel.app',
       'access-control-request-method': 'GET',
       'access-control-request-headers': 'authorization,content-type',
     },
@@ -73,7 +76,10 @@ test('OPTIONS preflight allows the configured production origin and requested AP
   assert.equal(result.res.statusCode, 204)
   assert.equal(result.res.ended, true)
   assert.equal(result.nextCalled, false)
-  assert.equal(result.headers['access-control-allow-origin'], 'https://health-system-iota.vercel.app')
+  assert.equal(
+    result.headers['access-control-allow-origin'],
+    'https://health-system-kylcpdqp-jubaer-ahmed-s-projects.vercel.app',
+  )
   assert.match(result.headers['access-control-allow-methods'], /GET/)
   assert.match(result.headers['access-control-allow-headers'], /Authorization/i)
 })

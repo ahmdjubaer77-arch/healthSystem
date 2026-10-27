@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import GlassCard from '../components/common/GlassCard'
 import NearbyHospitalMap from '../components/hospitals/NearbyHospitalMap'
+import { API_BASE_URL } from '../services/api'
 
 function formatDistance(distanceKm) {
   if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} m away`
@@ -21,7 +22,7 @@ function NearbyHospitalDetails() {
     const loadHospital = async () => {
       try {
         const params = new URLSearchParams(searchParams)
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/hospitals/${id}?${params.toString()}`)
+        const response = await fetch(`${API_BASE_URL}/hospitals/${id}?${params.toString()}`)
         const result = await response.json()
         if (!response.ok || !result.success) throw new Error('Unable to load hospital details.')
         if (active) {

@@ -17,6 +17,11 @@ Backend foundation for the Bangladesh Digital Health & Emergency Platform.
 ## Environment
 Copy `.env.example` to `.env` and update the values if needed.
 
+For Render, set `CLIENT_URL` to the exact Vercel frontend origin. If you use more than one
+frontend domain, separate the origins with commas (for example, the production domain and
+the current preview deployment domain). Set Vercel's `VITE_API_BASE_URL` to
+`https://healthsystem-xe2t.onrender.com/api`.
+
 ## Initial Super Admin
 Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in the backend environment to create the first Super Admin automatically. The password is hashed and stored in MongoDB. Leave both variables empty to skip bootstrap.
 
