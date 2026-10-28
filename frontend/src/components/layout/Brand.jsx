@@ -11,8 +11,10 @@ function Brand() {
         <HeartPulse size={20} aria-hidden="true" />
       </div>
       <div className="min-w-0 leading-tight">
-        <div className="whitespace-nowrap text-[11px] font-bold tracking-[0.16em] text-cyan-100 uppercase sm:text-xs">BD Health</div>
-        <div className="hidden whitespace-nowrap text-[10px] text-slate-300 sm:block">{t('brandTagline', 'Digital Health & Emergency Platform')}</div>
+        <div className="navbar-wordmark whitespace-nowrap text-[11px] font-bold tracking-[0.08em] text-cyan-100 sm:text-xs">
+          Nirogix <span className="navbar-wordmark-x">X</span>
+        </div>
+        <div className="hidden whitespace-nowrap text-[10px] text-slate-300 sm:block">{t('brandTagline', 'Your Health, Connected.')}</div>
       </div>
     </Link>
   )

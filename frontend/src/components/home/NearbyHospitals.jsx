@@ -37,7 +37,7 @@ function NearbyHospitals() {
       <header className="home-directory-header">
         <div>
           <p className="home-section-kicker">{t('homeHospitalsKicker', 'Hospital directory')}</p>
-          <h2 id="hospital-directory-title" className="home-section-title">{t('homeHospitalsTitle', 'Hospitals listed on BD Health')}</h2>
+          <h2 id="hospital-directory-title" className="home-section-title">{t('homeHospitalsTitle', 'Hospitals listed on Nirogix')}</h2>
         </div>
         <Link to="/hospitals" className="home-section-link">
           {t('homeBrowseHospitals', 'Browse hospitals')} <ArrowRight size={14} aria-hidden="true" />

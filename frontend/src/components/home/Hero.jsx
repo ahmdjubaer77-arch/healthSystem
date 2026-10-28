@@ -8,7 +8,7 @@ function Hero() {
   return (
     <section className={`home-hero ${language === 'bn' ? 'is-bangla' : ''}`} aria-labelledby="home-hero-title">
       <div className="home-hero-copy">
-        <p className="home-hero-kicker">{language === 'bn' ? 'বাংলাদেশ ডিজিটাল হেলথ' : 'BD Health'} <span aria-hidden="true">/</span> বাংলাদেশ</p>
+        <p className="home-hero-kicker">Nirogix <span aria-hidden="true">/</span> বাংলাদেশ</p>
         <h1 id="home-hero-title">{t('homeHeroTitle', 'Find the care you need, closer to home.')}</h1>
         {language === 'en' && <p className="home-hero-bangla" lang="bn">আপনার এলাকার স্বাস্থ্যসেবা খুঁজুন</p>}
         <p className="home-hero-description">

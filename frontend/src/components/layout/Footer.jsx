@@ -13,8 +13,8 @@ function Footer() {
               <HeartPulse size={20} />
             </div>
             <div>
-              <div className="text-sm font-semibold tracking-[0.14em] text-cyan-100 uppercase">BD Health</div>
-              <div className="text-[10px] text-slate-300">{t('brandTagline', 'Digital Health & Emergency Platform')}</div>
+              <div className="text-sm font-semibold tracking-[0.08em] text-cyan-100">Nirogix</div>
+              <div className="text-[10px] text-slate-300">{t('brandTagline', 'Your Health, Connected.')}</div>
             </div>
           </div>
           <p className="max-w-md text-sm leading-6 text-slate-300">

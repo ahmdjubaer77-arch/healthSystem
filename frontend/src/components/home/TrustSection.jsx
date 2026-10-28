@@ -15,7 +15,7 @@ function TrustSection() {
       </div>
       <div className="home-trust-copy">
         <p>{t('homeTrustDirectory', 'Directory information may change. Contact a provider to confirm services, hours and availability before travelling.')}</p>
-        <p><Info size={15} aria-hidden="true" /> {t('homeTrustNotice', 'BD Health is a directory and record-keeping platform, not an emergency dispatch service or a substitute for clinical advice.')}</p>
+        <p><Info size={15} aria-hidden="true" /> {t('homeTrustNotice', 'Nirogix is a directory and record-keeping platform, not an emergency dispatch service or a substitute for clinical advice.')}</p>
       </div>
     </section>
   )

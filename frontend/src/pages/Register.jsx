@@ -155,7 +155,7 @@ function Register() {
     <div className="register-page py-8">
       <div className="register-heading">
         <p>Create your account</p>
-        <h1>Join BD Health</h1>
+        <h1>Join Nirogix</h1>
         <span>A few details will help us set up your account.</span>
       </div>
 

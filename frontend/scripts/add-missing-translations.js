@@ -7,7 +7,7 @@ const filePath = path.resolve(scriptDirectory, '../src/translations/translations
 let source = fs.readFileSync(filePath, 'utf8')
 
 const additions = {
-  brandSubtitle: ['Digital Health & Emergency Platform', 'ডিজিটাল হেলথ ও জরুরি প্ল্যাটফর্ম'],
+  brandSubtitle: ['Your Health, Connected.', 'Your Health, Connected.'],
   brandDescription: ['Bangladesh-focused digital health services for personal record management, emergency access, and blood support.', 'বাংলাদেশের ব্যক্তিগত রেকর্ড পরিচালনা, জরুরি সেবা ও রক্তের সহায়ের জন্য ডিজিটাল হেলথ সেবা।'],
   navigation: ['Navigation', 'নেভিগেশন'],
   healthBatayonNumber: ['Health Batayon: 16263', 'হেলথ বাটায়ন: ১৬২৬৩'],
@@ -52,7 +52,7 @@ const additions = {
   welcomeName: ['Welcome, {name}.', 'স্বাগতম, {name}।'],
   accountReady: ['Your {role} account is ready.', 'আপনার {role} অ্য্যাকাউন্ট প্রস্তুত।'],
   goToLogin: ['Go to Login', 'লগ ইন করুন'],
-  registrationSubtitle: ['A polished registration flow for the Bangladesh Digital Health & Emergency Platform prototype.', 'বাংলাদেশের ডিজিটাল হেলথ ও জরুরি প্ল্যাটফর্ম প্রোটোটাইপের জন্য একটি সুন্দর রেজিস্ট্রেশন ফ্লো।'],
+  registrationSubtitle: ['A polished registration flow for the Nirogix digital healthcare platform.', 'বাংলাদেশের ডিজিটাল হেলথ ও জরুরি প্ল্যাটফর্ম প্রোটোটাইপের জন্য একটি সুন্দর রেজিস্ট্রেশন ফ্লো।'],
   fullName: ['Full Name', 'পুরো নাম'],
   enterFullName: ['Enter full name', 'পুরো নাম লিখুন'],
   phoneNumber: ['Phone Number', 'ফোন নম্বর'],

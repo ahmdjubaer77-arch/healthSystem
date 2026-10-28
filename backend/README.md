@@ -1,6 +1,6 @@
-# Bangladesh Digital Health & Emergency Platform
+# Nirogix — Digital Healthcare Platform
 
-Backend foundation for the Bangladesh Digital Health & Emergency Platform.
+Backend foundation for Nirogix, a digital healthcare platform.
 
 ## Stack
 - Node.js

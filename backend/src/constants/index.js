@@ -1,4 +1,4 @@
 module.exports = {
-  APP_NAME: 'Bangladesh Digital Health & Emergency Platform',
+  APP_NAME: 'Nirogix',
   APP_PORT: 5000,
 }

@@ -1,7 +1,7 @@
 {
   "name": "bangladesh-digital-health-backend",
   "version": "1.0.0",
-  "description": "Backend foundation for the Bangladesh Digital Health & Emergency Platform",
+  "description": "Backend foundation for the Nirogix digital healthcare platform",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

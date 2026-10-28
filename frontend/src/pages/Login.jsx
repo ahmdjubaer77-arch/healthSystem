@@ -156,7 +156,7 @@ function Login() {
           </form>
 
           <div className="login-create-account">
-            <span>{t('needAccount', 'New to BD Health?')}</span>
+            <span>{t('needAccount', 'New to Nirogix?')}</span>
             <Link to="/register">
               {t('createAccount', 'Create account')}
               <UserPlus size={15} aria-hidden="true" />
@@ -164,9 +164,9 @@ function Login() {
           </div>
         </div>
 
-        <aside className="login-visual" aria-label="BD Health secure care">
+        <aside className="login-visual" aria-label="Nirogix secure care">
           <div className="login-visual-top">
-            <span className="login-visual-brand"><HeartPulse size={18} /> BD Health</span>
+            <span className="login-visual-brand"><HeartPulse size={18} /> Nirogix</span>
             <span className="login-visual-status"><span aria-hidden="true" />Private access</span>
           </div>
 

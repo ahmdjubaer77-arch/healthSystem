@@ -65,7 +65,7 @@ app.use('/api', hospitalRoutes)
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Bangladesh Digital Health & Emergency Platform API',
+    message: 'Nirogix Digital Healthcare Platform API',
     data: null,
   })
 })
