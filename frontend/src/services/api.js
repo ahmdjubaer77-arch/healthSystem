@@ -77,6 +77,34 @@ export const registerUser = async ({ name, email, phone, password, bloodGroup, g
   return result
 }
 
+export const submitFeedback = async (accessToken, { category, message }) => {
+  if (!API_BASE_URL) {
+    throw new Error('Feedback service is not configured.')
+  }
+
+  let response
+  let result
+
+  try {
+    response = await fetch(`${API_BASE_URL}/users/feedback`, {
+      method: 'POST',
+      headers: createBearerHeaders(accessToken, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ category, message }),
+    })
+    result = await response.json()
+  } catch {
+    throw new Error('Unable to connect to the feedback service.')
+  }
+
+  if (!response.ok || result?.success !== true) {
+    const error = new Error(result?.message || 'Unable to send your feedback. Please try again.')
+    error.status = response.status
+    throw error
+  }
+
+  return result.data
+}
+
 export const getBackendHealth = async () => {
   try {
     if (!API_BASE_URL) {

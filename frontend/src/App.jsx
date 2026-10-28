@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import FloatingAssistant from './components/chat/FloatingAssistant'
+import FloatingFeedback from './components/feedback/FloatingFeedback'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ErrorBoundary from './components/common/ErrorBoundary'
@@ -51,13 +52,24 @@ import { useAuth } from './context/AuthContext'
 
 function App() {
   const location = useLocation()
-  const { accessToken } = useAuth()
+  const { accessToken, isAuthenticated, user } = useAuth()
   const isAdminRoute = location.pathname.startsWith('/admin')
   const showAssistant = location.pathname === '/' || location.pathname === '/health'
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (!isAuthenticated || ['ADMIN', 'SUPER_ADMIN'].includes(user?.role)) return
+
+    const promptKey = 'nirogix_feedback_prompted'
+    if (window.localStorage.getItem(promptKey)) return
+
+    window.localStorage.setItem(promptKey, 'true')
+    setIsFeedbackOpen(true)
+  }, [isAuthenticated, user?.role])
 
   return (
     <ErrorBoundary>
@@ -126,6 +138,14 @@ function App() {
           {!isAdminRoute && <Footer />}
         </div>
         {showAssistant && <FloatingAssistant accessToken={accessToken} isHealthPage={location.pathname === '/health'} />}
+        {isAuthenticated && !['ADMIN', 'SUPER_ADMIN'].includes(user?.role) && (
+          <FloatingFeedback
+            accessToken={accessToken}
+            isOpen={isFeedbackOpen}
+            onOpen={() => setIsFeedbackOpen(true)}
+            onClose={() => setIsFeedbackOpen(false)}
+          />
+        )}
       </div>
     </ErrorBoundary>
   )

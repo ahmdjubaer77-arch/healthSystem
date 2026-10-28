@@ -22,6 +22,11 @@ frontend domain, separate the origins with commas (for example, the production d
 the current preview deployment domain). Set Vercel's `VITE_API_BASE_URL` to
 `https://healthsystem-xe2t.onrender.com/api`.
 
+To send user feedback to Gmail, set `GMAIL_USER` to the sending Gmail address,
+`GMAIL_APP_PASSWORD` to a Google App Password, and `FEEDBACK_RECIPIENT` to the inbox that
+should receive feedback. Keep these values in the backend environment only; do not add them
+to the frontend environment or commit real credentials.
+
 ## Initial Super Admin
 Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in the backend environment to create the first Super Admin automatically. The password is hashed and stored in MongoDB. Leave both variables empty to skip bootstrap.
 
