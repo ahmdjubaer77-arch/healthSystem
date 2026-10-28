@@ -12,8 +12,10 @@ const EmergencyRequest = require('../src/models/EmergencyRequest')
 const Complaint = require('../src/models/Complaint')
 const userService = require('../src/services/user.service')
 const userRoutes = require('../src/routes/user.routes')
+const aiRoutes = require('../src/routes/ai.routes')
 const userController = require('../src/controllers/user.controller')
 const { authenticate } = require('../src/middleware/auth.middleware')
+const app = require('../src/app')
 
 const originalMethods = {
   userFindById: User.findById,
@@ -251,4 +253,14 @@ test('profile routes require authentication and always update the authenticated 
     if (previousSecret === undefined) delete process.env.JWT_SECRET
     else process.env.JWT_SECRET = previousSecret
   }
+})
+
+test('application mounts user routes under the users API prefix before generic API routers', () => {
+  const layers = app._router.stack
+  const userRoutesIndex = layers.findIndex((layer) => layer.handle === userRoutes)
+  const aiRoutesIndex = layers.findIndex((layer) => layer.handle === aiRoutes)
+  assert.notEqual(userRoutesIndex, -1)
+  assert.notEqual(aiRoutesIndex, -1)
+  assert.ok(userRoutesIndex < aiRoutesIndex)
+  assert.ok(layers[userRoutesIndex].regexp.test('/api/users/me/email-change/request'))
 })

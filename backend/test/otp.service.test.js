@@ -80,6 +80,7 @@ function createMemoryModels() {
     async updateOne(filter, update) {
       const challenge = [...challenges.values()].find((candidate) => matches(candidate, filter))
       if (!challenge) return { matchedCount: 0 }
+      Object.assign(challenge, update.$set || {})
       for (const [key, increment] of Object.entries(update.$inc || {})) {
         challenge[key] = (challenge[key] || 0) + increment
       }
@@ -90,7 +91,11 @@ function createMemoryModels() {
   return { UserModel, CodeModel, users, challenges }
 }
 
-function createTestOtpService({ startTime = Date.parse('2026-01-01T00:00:00.000Z') } = {}) {
+function createTestOtpService({
+  startTime = Date.parse('2026-01-01T00:00:00.000Z'),
+  sendMail = async () => {},
+  emailDeliveryTimeoutMs,
+} = {}) {
   process.env.JWT_SECRET = 'test-otp-secret'
   let currentTime = startTime
   const sentEmails = []
@@ -99,10 +104,15 @@ function createTestOtpService({ startTime = Date.parse('2026-01-01T00:00:00.000Z
     ...models,
     now: () => currentTime,
     randomInt: () => 123456,
+    emailDeliveryTimeoutMs,
     createTransport: (options) => ({
       sendMail: async (mail) => {
         assert.equal(options.service, 'gmail')
+        assert.equal(options.connectionTimeout, 10_000)
+        assert.equal(options.greetingTimeout, 10_000)
+        assert.equal(options.socketTimeout, 15_000)
         sentEmails.push(mail)
+        return sendMail(mail)
       },
     }),
   })
@@ -290,6 +300,59 @@ test('rejects email changes to an address already used by another account', asyn
     context.service.requestEmailChange('user-5', 'taken@example.test'),
     (error) => error.statusCode === 409 && error.code === 'EMAIL_IN_USE',
   )
+})
+
+test('email delivery failures invalidate the unsent OTP and do not leave the resend cooldown locked', async () => {
+  const context = createTestOtpService({
+    sendMail: async () => {
+      const error = new Error('SMTP connection timed out')
+      error.code = 'ETIMEDOUT'
+      throw error
+    },
+  })
+  context.users.set('user-7', {
+    _id: 'user-7',
+    email: 'current@example.test',
+    name: 'Current User',
+    accountStatus: 'ACTIVE',
+  })
+
+  await assert.rejects(
+    context.service.requestEmailChange('user-7', 'new@example.test'),
+    (error) => error.statusCode === 503 && error.code === 'OTP_DELIVERY_FAILED',
+  )
+
+  const challenge = [...context.challenges.values()][0]
+  assert.equal(challenge.otpHash, null)
+  assert.equal(challenge.pendingEmail, null)
+  assert.equal(new Date(challenge.lastSentAt).getTime(), 0)
+  await assert.rejects(
+    context.service.requestEmailChange('user-7', 'new@example.test'),
+    (error) => error.code === 'OTP_DELIVERY_FAILED',
+  )
+})
+
+test('email delivery that never resolves times out, invalidates the OTP, and releases the resend cooldown', async () => {
+  const context = createTestOtpService({
+    emailDeliveryTimeoutMs: 5,
+    sendMail: () => new Promise(() => {}),
+  })
+  context.users.set('user-8', {
+    _id: 'user-8',
+    email: 'current@example.test',
+    name: 'Current User',
+    accountStatus: 'ACTIVE',
+  })
+
+  await assert.rejects(
+    context.service.requestEmailChange('user-8', 'new@example.test'),
+    (error) => error.statusCode === 503 && error.code === 'OTP_DELIVERY_FAILED',
+  )
+
+  const challenge = [...context.challenges.values()][0]
+  assert.equal(challenge.otpHash, null)
+  assert.equal(challenge.pendingEmail, null)
+  assert.equal(new Date(challenge.lastSentAt).getTime(), 0)
 })
 
 test('auth routes expose the email verification and password reset endpoints', () => {

@@ -36,6 +36,7 @@ function createOtpService({
   now = Date.now,
   randomInt = crypto.randomInt,
   createTransport = nodemailer.createTransport,
+  emailDeliveryTimeoutMs = 20_000,
 } = {}) {
   function getHashSecret() {
     const secret = process.env.JWT_SECRET
@@ -65,6 +66,9 @@ function createOtpService({
     return createTransport({
       service: 'gmail',
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     })
   }
 
@@ -83,8 +87,9 @@ function createOtpService({
         ? 'Use this code to confirm the new email address on your account.'
         : 'Use this code to continue resetting your password.'
 
+    let deliveryTimeout
     try {
-      await transporter.sendMail({
+      const delivery = transporter.sendMail({
         from: `"Nirogix X" <${GMAIL_USER}>`,
         to: email,
         subject,
@@ -147,9 +152,20 @@ function createOtpService({
   </body>
 </html>`,
       })
+      const timeout = new Promise((_, reject) => {
+        deliveryTimeout = setTimeout(() => {
+          const error = new Error('OTP email delivery timed out.')
+          error.code = 'ETIMEDOUT'
+          reject(error)
+        }, emailDeliveryTimeoutMs)
+      })
+      await Promise.race([delivery, timeout])
     } catch (error) {
       console.error('OTP email delivery failed:', error.code || error.name || 'unknown error')
       throw createError('The email could not be sent. Please request a new code shortly.', 503, 'OTP_DELIVERY_FAILED')
+    } finally {
+      clearTimeout(deliveryTimeout)
+      transporter.close?.()
     }
   }
 
@@ -205,7 +221,22 @@ function createOtpService({
 
     const delivery = sendOtpEmail(extraFields.pendingEmail || email, name, purpose, otp)
     if (waitForDelivery) {
-      await delivery
+      try {
+        await delivery
+      } catch (error) {
+        await CodeModel.updateOne({
+          _id: challenge._id,
+          otpHash: update.$set.otpHash,
+        }, {
+          $set: {
+            otpHash: null,
+            usedAt: sentAt,
+            lastSentAt: new Date(0),
+            pendingEmail: null,
+          },
+        })
+        throw error
+      }
     } else {
       delivery.catch((error) => {
         console.error('OTP email delivery failed:', error.code || error.name || 'unknown error')

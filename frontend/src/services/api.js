@@ -139,22 +139,30 @@ export const resetPassword = ({ email, resetToken, password, confirmPassword }) 
   'Unable to reset your password. Please try again.',
 )
 
-const requestMyAccountSecurityApi = async (accessToken, endpoint, payload, fallbackMessage) => {
+const requestMyAccountSecurityApi = async (accessToken, endpoint, payload, fallbackMessage, timeoutMessage) => {
   if (!API_BASE_URL) throw new Error('Account security service is not configured.')
   if (!accessToken) throw new Error('Please sign in again to update your account security.')
 
   let response
   let result
+  const controller = new AbortController()
+  const timeoutId = timeoutMessage
+    ? globalThis.setTimeout(() => controller.abort(), 25_000)
+    : null
   try {
     response = await fetch(`${API_BASE_URL}/users/me/${endpoint}`, {
       method: 'POST',
       headers: createBearerHeaders(accessToken, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
       cache: 'no-store',
+      signal: controller.signal,
     })
     result = await response.json()
-  } catch {
+  } catch (error) {
+    if (controller.signal.aborted && timeoutMessage) throw new Error(timeoutMessage)
     throw new Error('Unable to connect to the account security service.')
+  } finally {
+    if (timeoutId !== null) globalThis.clearTimeout(timeoutId)
   }
 
   if (!response.ok || result?.success !== true) {
@@ -178,6 +186,7 @@ export const requestAccountEmailChange = (accessToken, email) => requestMyAccoun
   'email-change/request',
   { email },
   'Unable to send a verification code.',
+  'Email delivery timed out. Check your connection and try again.',
 )
 
 export const confirmAccountEmailChange = (accessToken, code) => requestMyAccountSecurityApi(
