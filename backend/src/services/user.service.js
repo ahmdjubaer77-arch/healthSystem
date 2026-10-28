@@ -173,6 +173,31 @@ async function updateMyProfile(userId, input) {
   return profileResponse(user)
 }
 
+async function changeMyPassword(userId, input = {}) {
+  const currentPassword = typeof input.currentPassword === 'string' ? input.currentPassword : ''
+  const newPassword = typeof input.newPassword === 'string' ? input.newPassword : ''
+  const confirmPassword = typeof input.confirmPassword === 'string' ? input.confirmPassword : ''
+
+  if (!currentPassword) throw createError('Your current password is required.', 400)
+  if (newPassword.length < 8 || Buffer.byteLength(newPassword, 'utf8') > 72) {
+    throw createError('New password must be at least 8 characters and no more than 72 bytes.', 400)
+  }
+  if (newPassword !== confirmPassword) throw createError('Passwords do not match.', 400)
+  if (newPassword === currentPassword) {
+    throw createError('Choose a new password different from your current password.', 400)
+  }
+
+  const user = await User.findById(userId).select('+passwordHash')
+  if (!user) throw createError('User profile not found', 404)
+  if (!(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    throw createError('Your current password is incorrect.', 401)
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12)
+  await user.save()
+  return { changed: true }
+}
+
 async function deleteMyAccount(userId, input = {}) {
   const password = typeof input.currentPassword === 'string' ? input.currentPassword : ''
   if (!password) {
@@ -323,6 +348,7 @@ async function deleteProfilePicture(userId) {
 module.exports = {
   getMyProfile,
   updateMyProfile,
+  changeMyPassword,
   deleteMyAccount,
   uploadProfilePicture,
   deleteProfilePicture,

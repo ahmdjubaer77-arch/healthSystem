@@ -43,6 +43,7 @@ import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import VerifyEmail from './pages/VerifyEmail'
 import Settings from './pages/Settings'
 import Notifications from './pages/Notifications'
 import Privacy from './pages/Privacy'
@@ -101,6 +102,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route
                 path="/admin"
                 element={

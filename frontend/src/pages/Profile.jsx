@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Check, Copy, Edit3, HeartPulse, ImagePlus, Save, ShieldCheck, Trash2, UserRound, X } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Edit3, HeartPulse, ImagePlus, KeyRound, Mail, Save, ShieldCheck, Trash2, UserRound, X } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import OtpInput from '../components/auth/OtpInput'
 import GlassCard from '../components/common/GlassCard'
 import LoadingState from '../components/common/LoadingState'
 import ProfileAvatar from '../components/common/ProfileAvatar'
@@ -9,7 +10,10 @@ import { useAuth } from '../context/AuthContext'
 import {
   deleteMyAccount,
   deleteProfilePicture,
+  changeAccountPassword,
+  confirmAccountEmailChange,
   getHealthProfile,
+  requestAccountEmailChange,
   saveHealthProfile,
   updateUserProfile,
   uploadProfilePicture,
@@ -52,6 +56,31 @@ function Profile() {
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [publicIdCopied, setPublicIdCopied] = useState(false)
   const [publicIdCopyError, setPublicIdCopyError] = useState('')
+  const [securityDialog, setSecurityDialog] = useState('')
+  const [securityLoading, setSecurityLoading] = useState(false)
+  const [securityError, setSecurityError] = useState('')
+  const [securitySuccess, setSecuritySuccess] = useState('')
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [newEmail, setNewEmail] = useState('')
+  const [emailCode, setEmailCode] = useState('')
+  const [emailCodeSent, setEmailCodeSent] = useState(false)
+  const [emailChangeCompleted, setEmailChangeCompleted] = useState(false)
+  const [emailOtpExpiresAt, setEmailOtpExpiresAt] = useState(null)
+  const [emailOtpExpired, setEmailOtpExpired] = useState(false)
+  const [emailResendCountdown, setEmailResendCountdown] = useState(0)
+
+  useEffect(() => {
+    if (emailResendCountdown <= 0) return undefined
+    const timer = window.setTimeout(
+      () => setEmailResendCountdown((seconds) => seconds - 1),
+      1000,
+    )
+    return () => window.clearTimeout(timer)
+  }, [emailResendCountdown])
 
   const copyPublicUserId = async () => {
     if (!user?.publicUserId) return
@@ -187,6 +216,105 @@ function Profile() {
       setDeleteAccountError(error.message)
     } finally {
       setDeleteAccountLoading(false)
+    }
+  }
+
+  const openSecurityDialog = (dialog) => {
+    setSecurityDialog(dialog)
+    setSecurityError('')
+    setSecuritySuccess('')
+    setEmailChangeCompleted(false)
+  }
+
+  const closeSecurityDialog = () => {
+    if (securityLoading) return
+    setSecurityDialog('')
+    setSecurityError('')
+    setSecuritySuccess('')
+    setEmailCode('')
+    setEmailCodeSent(false)
+    setEmailChangeCompleted(false)
+    setEmailOtpExpiresAt(null)
+    setEmailOtpExpired(false)
+    setEmailResendCountdown(0)
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  }
+
+  const handlePasswordChange = async (event) => {
+    event.preventDefault()
+    setSecurityError('')
+    setSecuritySuccess('')
+    setSecurityLoading(true)
+    try {
+      await changeAccountPassword(accessToken, passwordForm)
+      setSecuritySuccess('Your password has been changed.')
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch (error) {
+      setSecurityError(error.message)
+    } finally {
+      setSecurityLoading(false)
+    }
+  }
+
+  const handleEmailChangeRequest = async (event) => {
+    event.preventDefault()
+    setSecurityError('')
+    setSecuritySuccess('')
+    setSecurityLoading(true)
+    try {
+      const result = await requestAccountEmailChange(accessToken, newEmail)
+      setNewEmail(result.email)
+      setEmailCodeSent(true)
+      setEmailCode('')
+      setEmailOtpExpiresAt(Date.now() + 5 * 60 * 1000)
+      setEmailOtpExpired(false)
+      setEmailResendCountdown(60)
+      setSecuritySuccess(`A verification code was sent to ${result.email}.`)
+    } catch (error) {
+      setSecurityError(error.message)
+    } finally {
+      setSecurityLoading(false)
+    }
+  }
+
+  const handleEmailChangeConfirm = async (event) => {
+    event.preventDefault()
+    setSecurityError('')
+    setSecuritySuccess('')
+    setSecurityLoading(true)
+    try {
+      const result = await confirmAccountEmailChange(accessToken, emailCode)
+      updateProfile({ email: result.email, emailVerified: true })
+      setSecuritySuccess(`Your email has been changed to ${result.email}.`)
+      setEmailChangeCompleted(true)
+      setEmailCodeSent(false)
+      setEmailCode('')
+      setEmailOtpExpiresAt(null)
+    } catch (error) {
+      setSecurityError(error.message)
+      if (error.code === 'OTP_EXPIRED') setEmailOtpExpired(true)
+    } finally {
+      setSecurityLoading(false)
+    }
+  }
+
+  const handleEmailChangeResend = async () => {
+    if (emailResendCountdown > 0 || securityLoading) return
+    setSecurityError('')
+    setSecuritySuccess('')
+    setSecurityLoading(true)
+    try {
+      const result = await requestAccountEmailChange(accessToken, newEmail)
+      setNewEmail(result.email)
+      setEmailCode('')
+      setEmailOtpExpiresAt(Date.now() + 5 * 60 * 1000)
+      setEmailOtpExpired(false)
+      setEmailResendCountdown(60)
+      setSecuritySuccess(`A new verification code was sent to ${result.email}.`)
+    } catch (error) {
+      setSecurityError(error.message)
+    } finally {
+      setSecurityLoading(false)
     }
   }
 
@@ -341,6 +469,36 @@ function Profile() {
             <Edit3 size={14} />
             Edit Profile
           </button>
+          <div className="mt-5 border-t border-white/10 pt-5">
+            <div className="mb-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">Security</p>
+              <h3 className="mt-1 text-base font-semibold text-white">Keep your account up to date</h3>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => openSecurityDialog('password')}
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
+              >
+                <KeyRound size={14} aria-hidden="true" />
+                Change password
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewEmail('')
+                  setEmailCodeSent(false)
+                  setEmailCode('')
+                  setEmailOtpExpired(false)
+                  openSecurityDialog('email')
+                }}
+                className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
+              >
+                <Mail size={14} aria-hidden="true" />
+                Change email
+              </button>
+            </div>
+          </div>
           <div className="mt-5 border-t border-white/10 pt-4">
             <button
               type="button"
@@ -654,6 +812,167 @@ function Profile() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {securityDialog && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeSecurityDialog()
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="account-security-title"
+            className="w-full max-w-md rounded-[28px] border border-cyan-200/15 bg-slate-950/95 p-5 shadow-[0_24px_70px_rgba(2,8,23,0.55)] sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">Account security</p>
+                <h2 id="account-security-title" className="mt-2 text-xl font-semibold text-white">
+                  {securityDialog === 'password' ? 'Change password' : 'Change email address'}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  {securityDialog === 'password'
+                    ? 'Confirm your current password before choosing a new one.'
+                    : emailCodeSent
+                      ? `Enter the verification code sent to ${newEmail}.`
+                      : 'We will send a verification code to your new email address.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close account security dialog"
+                disabled={securityLoading}
+                onClick={closeSecurityDialog}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10 disabled:opacity-50"
+              >
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+
+            {securityDialog === 'password' ? (
+              <form onSubmit={handlePasswordChange} className="mt-5 space-y-4">
+                <ProfileField id="current-account-password" label="Current password">
+                  <input
+                    id="current-account-password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={passwordForm.currentPassword}
+                    onChange={(event) => setPasswordForm((form) => ({ ...form, currentPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50"
+                  />
+                </ProfileField>
+                <ProfileField id="new-account-password" label="New password">
+                  <input
+                    id="new-account-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={72}
+                    required
+                    value={passwordForm.newPassword}
+                    onChange={(event) => setPasswordForm((form) => ({ ...form, newPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50"
+                  />
+                </ProfileField>
+                <ProfileField id="confirm-account-password" label="Confirm new password">
+                  <input
+                    id="confirm-account-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={72}
+                    required
+                    value={passwordForm.confirmPassword}
+                    onChange={(event) => setPasswordForm((form) => ({ ...form, confirmPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50"
+                  />
+                </ProfileField>
+                {securitySuccess && <p className="text-sm text-emerald-200" role="status">{securitySuccess}</p>}
+                {securityError && <p className="text-sm text-red-200" role="alert">{securityError}</p>}
+                <button
+                  type="submit"
+                  disabled={securityLoading}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
+                >
+                  <KeyRound size={15} aria-hidden="true" />
+                  {securityLoading ? 'Updating password...' : securitySuccess ? 'Change password again' : 'Update password'}
+                </button>
+              </form>
+            ) : emailChangeCompleted ? (
+              <div className="mt-6 space-y-5">
+                <div className="flex items-start gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                  <Check className="mt-0.5 shrink-0 text-emerald-300" size={20} aria-hidden="true" />
+                  <p className="account-security-success text-sm leading-6" role="status">
+                    {securitySuccess}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeSecurityDialog}
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={emailCodeSent ? handleEmailChangeConfirm : handleEmailChangeRequest}
+                className="mt-5 space-y-4"
+              >
+                {!emailCodeSent ? (
+                  <ProfileField id="new-account-email" label="New email address">
+                    <input
+                      id="new-account-email"
+                      type="email"
+                      autoComplete="email"
+                      maxLength={254}
+                      required
+                      value={newEmail}
+                      onChange={(event) => setNewEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
+                    />
+                  </ProfileField>
+                ) : (
+                  <>
+                    <OtpInput
+                      value={emailCode}
+                      onChange={(value) => { setEmailCode(value); setSecurityError('') }}
+                      disabled={securityLoading}
+                      error={securityError}
+                      expiresAt={emailOtpExpiresAt}
+                      onExpired={() => setEmailOtpExpired(true)}
+                    />
+                    <button
+                      type="button"
+                      disabled={emailResendCountdown > 0 || securityLoading}
+                      onClick={handleEmailChangeResend}
+                      className="text-sm font-medium text-cyan-200 transition hover:text-white disabled:cursor-not-allowed disabled:text-slate-500"
+                    >
+                      {emailResendCountdown > 0 ? `Resend code in ${emailResendCountdown}s` : 'Resend code'}
+                    </button>
+                  </>
+                )}
+                {securitySuccess && <p className="account-security-success text-sm" role="status">{securitySuccess}</p>}
+                {securityError && !emailCodeSent && <p className="text-sm text-red-200" role="alert">{securityError}</p>}
+                <button
+                  type="submit"
+                  disabled={securityLoading || (emailCodeSent && (emailOtpExpired || emailCode.length !== 6))}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
+                >
+                  <Mail size={15} aria-hidden="true" />
+                  {securityLoading
+                    ? emailCodeSent ? 'Verifying code...' : 'Sending code...'
+                    : emailCodeSent ? 'Verify and update email' : 'Send verification code'}
+                </button>
+              </form>
+            )}
+          </section>
         </div>
       )}
 

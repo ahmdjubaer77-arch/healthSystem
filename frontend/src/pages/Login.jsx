@@ -70,6 +70,16 @@ function Login() {
         : location.state?.from || '/profile'
       navigate(destination, { replace: true })
     } catch (error) {
+      if (error.code === 'EMAIL_NOT_VERIFIED') {
+        addToast({
+          type: 'info',
+          title: 'Verify your email',
+          message: 'Enter the verification code we sent to your email before signing in.',
+        })
+        navigate('/verify-email', { state: { email: form.email.trim(), requestCode: true } })
+        return
+      }
+
       addToast({
         type: 'error',
         title: t('loginFailed', 'Sign-in failed'),

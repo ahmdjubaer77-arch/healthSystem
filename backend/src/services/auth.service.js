@@ -1,15 +1,17 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const otpService = require('./otp.service')
 const { createUserWithPublicId } = require('../utils/public-user-id')
 
 const SALT_ROUNDS = 12
 const INVALID_CREDENTIALS = 'Invalid email or password'
 const bloodGroups = new Set(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])
 
-function createError(message, statusCode) {
+function createError(message, statusCode, code) {
   const error = new Error(message)
   error.statusCode = statusCode
+  if (code) error.code = code
   return error
 }
 
@@ -85,8 +87,11 @@ async function register(input = {}) {
       location: input.location,
       bloodGroup,
       accountStatus: 'ACTIVE',
+      emailVerified: false,
+      emailVerificationRequired: true,
     }, User)
 
+    await otpService.requestEmailVerification(user.email, { waitForDelivery: true })
     return registrationUser(user)
   } catch (error) {
     if (error.code === 11000) {
@@ -117,6 +122,10 @@ async function login(input = {}) {
   const passwordMatches = await bcrypt.compare(password, user.passwordHash)
   if (!passwordMatches) {
     throw createError(INVALID_CREDENTIALS, 401)
+  }
+
+  if (user.emailVerificationRequired && !user.emailVerified) {
+    throw createError('Verify your email address before signing in.', 403, 'EMAIL_NOT_VERIFIED')
   }
 
   if (!process.env.JWT_SECRET) {

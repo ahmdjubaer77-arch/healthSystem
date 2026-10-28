@@ -123,6 +123,37 @@ test('account deletion rejects an incorrect current password without deleting us
   assert.equal(deleted, false)
 })
 
+test('password change requires the current password and stores a bcrypt hash of the new password', async () => {
+  const passwordHash = await bcrypt.hash('current-password', 4)
+  let saved = false
+  const user = {
+    passwordHash,
+    async save() { saved = true },
+  }
+  User.findById = () => ({
+    select: async () => user,
+  })
+
+  await assert.rejects(
+    userService.changeMyPassword('user-password', {
+      currentPassword: 'wrong-password',
+      newPassword: 'a-new-secure-password',
+      confirmPassword: 'a-new-secure-password',
+    }),
+    (error) => error.statusCode === 401,
+  )
+  assert.equal(saved, false)
+
+  await userService.changeMyPassword('user-password', {
+    currentPassword: 'current-password',
+    newPassword: 'a-new-secure-password',
+    confirmPassword: 'a-new-secure-password',
+  })
+  assert.equal(saved, true)
+  assert.notEqual(user.passwordHash, passwordHash)
+  assert.equal(await bcrypt.compare('a-new-secure-password', user.passwordHash), true)
+})
+
 test('account deletion removes only records owned or assigned to the authenticated user after password verification', async () => {
   const userId = 'user-456'
   const passwordHash = await bcrypt.hash('correct-password', 4)

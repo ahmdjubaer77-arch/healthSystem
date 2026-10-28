@@ -31,10 +31,9 @@ const registrationSteps = [
 ]
 
 function Register() {
+  const navigate = useNavigate()
   const [form, setForm] = useState(initialForm)
-  const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [registeredUser, setRegisteredUser] = useState(null)
   const [activeStep, setActiveStep] = useState(0)
   const [passwordError, setPasswordError] = useState('')
   const [visiblePasswords, setVisiblePasswords] = useState({ password: false, confirmPassword: false })
@@ -109,14 +108,22 @@ function Register() {
           area: form.area,
         },
       })
-      setRegisteredUser(result.data.user)
-      setSubmitted(true)
       addToast({
         type: 'success',
-        title: result.message,
-        message: `Welcome, ${result.data.user.name}. Your account has been created.`,
+        title: 'Verify your email',
+        message: `We sent a 6-digit verification code to ${result.data.user.email}.`,
       })
+      navigate('/verify-email', { state: { email: result.data.user.email } })
     } catch (error) {
+      if (error.status === 503) {
+        addToast({
+          type: 'error',
+          title: 'Email delivery delayed',
+          message: 'Your account was created, but we could not send the verification code. You can try again from email verification.',
+        })
+        navigate('/verify-email', { state: { email: form.email, deliveryPending: true } })
+        return
+      }
       addToast({
         type: 'error',
         title: t('registrationFailed', 'Registration failed'),
@@ -125,30 +132,6 @@ function Register() {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  if (submitted) {
-    return (
-      <div className="register-page py-8">
-        <SectionHeader
-          kicker={t('createAccount', 'Create account')}
-          title={t('registrationSuccessful', 'Registration complete')}
-          subtitle={t('accountCreated', 'Your account has been created.')}
-        />
-        <GlassCard className="register-success-card max-w-2xl p-6 text-center">
-          <div className="space-y-4">
-            <p className="text-lg font-semibold text-white">Welcome, {registeredUser?.name || 'there'}.</p>
-            <p className="text-sm text-slate-300">Your {registeredUser?.role || 'member'} account is ready.</p>
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center rounded-full border border-cyan-300/35 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100"
-            >
-              {t('goToLogin', 'Go to sign in')}
-            </Link>
-          </div>
-        </GlassCard>
-      </div>
-    )
   }
 
   return (

@@ -27,6 +27,24 @@ To send user feedback to Gmail, set `GMAIL_USER` to the sending Gmail address,
 should receive feedback. Keep these values in the backend environment only; do not add them
 to the frontend environment or commit real credentials.
 
+## Email OTP verification and password reset
+Email OTP uses the existing backend `GMAIL_USER` and `GMAIL_APP_PASSWORD` variables; no
+additional Render environment variable is required. `JWT_SECRET` is used to HMAC-hash OTPs
+at rest. Codes expire after five minutes, are limited to five verification attempts, and can
+be resent once per minute. OTPs are stored in the `OneTimeCode` MongoDB collection with a TTL
+index.
+
+The public auth endpoints are:
+- `POST /api/auth/email/verification/request`
+- `POST /api/auth/email/verification/confirm`
+- `POST /api/auth/password/reset/request`
+- `POST /api/auth/password/reset/verify`
+- `POST /api/auth/password/reset/confirm`
+
+Password reset requests always return the same generic response regardless of whether an
+account exists. Reset authorization is a random, five-minute token returned only after OTP
+verification and is kept in frontend memory between verification and password update.
+
 ## Initial Super Admin
 Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in the backend environment to create the first Super Admin automatically. The password is hashed and stored in MongoDB. Leave both variables empty to skip bootstrap.
 

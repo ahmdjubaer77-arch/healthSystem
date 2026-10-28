@@ -32,7 +32,10 @@ export const loginUser = async ({ email, password }) => {
   }
 
   if (!response.ok || result?.success !== true) {
-    throw new Error(result?.message || 'Login failed. Please try again.')
+    const error = new Error(result?.message || 'Login failed. Please try again.')
+    error.status = response.status
+    error.code = result?.code
+    throw error
   }
 
   if (!result.data?.user || !result.data?.accessToken) {
@@ -71,11 +74,118 @@ export const registerUser = async ({ name, email, phone, password, bloodGroup, g
   }
 
   if (!response.ok || result?.success !== true) {
-    throw new Error(result?.message || 'Registration failed. Please try again.')
+    const error = new Error(result?.message || 'Registration failed. Please try again.')
+    error.status = response.status
+    error.code = result?.code
+    throw error
   }
 
   return result
 }
+
+const postAuthRequest = async (endpoint, payload, fallbackMessage) => {
+  if (!API_BASE_URL) throw new Error('Authentication service is not configured.')
+
+  let response
+  let result
+  try {
+    response = await fetch(`${API_BASE_URL}/auth/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    result = await response.json()
+  } catch {
+    throw new Error('Unable to connect to the authentication service.')
+  }
+
+  if (!response.ok || result?.success !== true) {
+    const error = new Error(result?.message || fallbackMessage)
+    error.status = response.status
+    error.code = result?.code
+    throw error
+  }
+
+  return result
+}
+
+export const requestEmailVerification = (email) => postAuthRequest(
+  'email/verification/request',
+  { email },
+  'Unable to send a verification code. Please try again.',
+)
+
+export const verifyEmailCode = (email, code) => postAuthRequest(
+  'email/verification/confirm',
+  { email, code },
+  'Unable to verify this code. Please try again.',
+)
+
+export const requestPasswordReset = (email) => postAuthRequest(
+  'password/reset/request',
+  { email },
+  'Unable to request a password reset. Please try again.',
+)
+
+export const verifyPasswordResetCode = (email, code) => postAuthRequest(
+  'password/reset/verify',
+  { email, code },
+  'Unable to verify this code. Please try again.',
+)
+
+export const resetPassword = ({ email, resetToken, password, confirmPassword }) => postAuthRequest(
+  'password/reset/confirm',
+  { email, resetToken, password, confirmPassword },
+  'Unable to reset your password. Please try again.',
+)
+
+const requestMyAccountSecurityApi = async (accessToken, endpoint, payload, fallbackMessage) => {
+  if (!API_BASE_URL) throw new Error('Account security service is not configured.')
+  if (!accessToken) throw new Error('Please sign in again to update your account security.')
+
+  let response
+  let result
+  try {
+    response = await fetch(`${API_BASE_URL}/users/me/${endpoint}`, {
+      method: 'POST',
+      headers: createBearerHeaders(accessToken, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    })
+    result = await response.json()
+  } catch {
+    throw new Error('Unable to connect to the account security service.')
+  }
+
+  if (!response.ok || result?.success !== true) {
+    const error = new Error(result?.message || fallbackMessage)
+    error.status = response.status
+    error.code = result?.code
+    throw error
+  }
+  return result.data
+}
+
+export const changeAccountPassword = (accessToken, payload) => requestMyAccountSecurityApi(
+  accessToken,
+  'change-password',
+  payload,
+  'Unable to change your password.',
+)
+
+export const requestAccountEmailChange = (accessToken, email) => requestMyAccountSecurityApi(
+  accessToken,
+  'email-change/request',
+  { email },
+  'Unable to send a verification code.',
+)
+
+export const confirmAccountEmailChange = (accessToken, code) => requestMyAccountSecurityApi(
+  accessToken,
+  'email-change/confirm',
+  { code },
+  'Unable to verify this email change.',
+)
 
 export const submitFeedback = async (accessToken, { category, message }) => {
   if (!API_BASE_URL) {

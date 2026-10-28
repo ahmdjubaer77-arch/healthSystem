@@ -380,6 +380,122 @@
   }
 }
 
+.otp-input-wrap {
+  width: 100%;
+}
+
+.otp-input-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(0.45rem, 2.5vw, 0.75rem);
+}
+
+.otp-digit {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(165, 243, 252, 0.2);
+  border-radius: clamp(0.75rem, 3vw, 1rem);
+  outline: none;
+  color: #ecfeff;
+  background: linear-gradient(145deg, rgba(15, 42, 62, 0.78), rgba(8, 24, 42, 0.72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 6px 16px rgba(2, 8, 23, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  text-align: center;
+  font-size: clamp(1.25rem, 5vw, 1.65rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  caret-color: #67e8f9;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.otp-digit:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(103, 232, 249, 0.78);
+  background: linear-gradient(145deg, rgba(13, 57, 78, 0.9), rgba(8, 34, 55, 0.88));
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12), 0 0 22px rgba(34, 211, 238, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.otp-digit:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.otp-input-grid-error .otp-digit,
+.otp-input-grid-expired .otp-digit {
+  border-color: rgba(251, 113, 133, 0.45);
+}
+
+.otp-status {
+  min-height: 1.25rem;
+  margin: 0.65rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.otp-status-error {
+  color: #fda4af;
+}
+
+.otp-status-timer {
+  color: #9eb4c5;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.otp-status-timer strong {
+  color: #a5f3fc;
+  font-weight: 650;
+}
+
+@media (max-width: 360px) {
+  .otp-input-grid {
+    gap: 0.35rem;
+  }
+
+  .otp-digit {
+    border-radius: 0.7rem;
+    font-size: 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .otp-digit {
+    transition: none;
+  }
+}
+
+:root[data-theme='light'] .otp-digit {
+  border-color: rgba(15, 118, 110, 0.2);
+  color: #123047;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(232, 247, 250, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 5px 14px rgba(15, 47, 68, 0.08);
+  caret-color: #0891b2;
+}
+
+:root[data-theme='light'] .otp-digit:focus-visible {
+  border-color: rgba(8, 145, 178, 0.7);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12), 0 0 18px rgba(8, 145, 178, 0.12);
+}
+
+:root[data-theme='light'] .otp-status-timer {
+  color: #526b7f;
+}
+
+:root[data-theme='light'] .otp-status-timer strong {
+  color: #0f766e;
+}
+
+.account-security-success {
+  color: #a7f3d0;
+}
+
+:root[data-theme='light'] .account-security-success {
+  color: #047857;
+}
+
 :root[data-theme='light'] .assistant-launcher {
   border-color: rgba(15, 118, 110, 0.25);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(221, 246, 249, 0.68));
