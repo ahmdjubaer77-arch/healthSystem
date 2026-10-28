@@ -52,11 +52,11 @@ app.use(cors({
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use('/api/users', userRoutes)
 app.use('/api', aiRoutes)
 app.use('/api', healthRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/admin', adminRoutes)
-app.use('/api/users', userRoutes)
 app.use('/api', bloodRoutes)
 app.use('/api', doctorRoutes)
 app.use('/api', ambulanceRoutes)

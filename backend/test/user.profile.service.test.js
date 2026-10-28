@@ -193,6 +193,18 @@ test('profile routes require authentication and always update the authenticated 
   const previousSecret = process.env.JWT_SECRET
   process.env.JWT_SECRET = 'user-profile-route-test-secret'
   const expectedUserId = 'token-owned-user'
+  const accountSecurityRoutes = [
+    ['/me/change-password', 'post'],
+    ['/me/email-change/request', 'post'],
+    ['/me/email-change/confirm', 'post'],
+  ]
+  for (const [path, method] of accountSecurityRoutes) {
+    const route = userRoutes.stack
+      .find((layer) => layer.route?.path === path && layer.route.methods[method])
+      .route
+    assert.equal(route.stack[0].handle, authenticate)
+  }
+
   const patchRoute = userRoutes.stack
     .find((layer) => layer.route?.path === '/me' && layer.route.methods.patch)
     .route
