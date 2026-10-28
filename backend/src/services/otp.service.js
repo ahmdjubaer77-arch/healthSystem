@@ -1,8 +1,8 @@
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
-const nodemailer = require('nodemailer')
 const OneTimeCode = require('../models/OneTimeCode')
 const User = require('../models/User')
+const { sendEmail: deliverEmail } = require('./email.service')
 
 const OTP_LIFETIME_MS = 5 * 60 * 1000
 const RESEND_COOLDOWN_MS = 60 * 1000
@@ -36,7 +36,7 @@ function createOtpService({
   CodeModel = OneTimeCode,
   now = Date.now,
   randomInt = crypto.randomInt,
-  createTransport = nodemailer.createTransport,
+  sendEmail = deliverEmail,
   emailDeliveryTimeoutMs = 20_000,
 } = {}) {
   function getHashSecret() {
@@ -58,24 +58,7 @@ function createOtpService({
       && crypto.timingSafeEqual(leftBuffer, rightBuffer)
   }
 
-  function createTransporter() {
-    const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      throw createError('Email verification is not configured. Please try again later.', 503, 'OTP_DELIVERY_FAILED', true)
-    }
-
-    return createTransport({
-      service: 'gmail',
-      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 15_000,
-    })
-  }
-
   async function sendOtpEmail(email, name, purpose, otp) {
-    const { GMAIL_USER } = process.env
-    const transporter = createTransporter()
     const safeName = escapeHtml(name || 'there')
     const subject = purpose === 'EMAIL_VERIFICATION'
       ? 'Verify your Nirogix X email'
@@ -90,8 +73,7 @@ function createOtpService({
 
     let deliveryTimeout
     try {
-      const delivery = transporter.sendMail({
-        from: `"Nirogix X" <${GMAIL_USER}>`,
+      const delivery = sendEmail({
         to: email,
         subject,
         text: `Hello ${name || 'there'},\n\n${action}\n\nYour verification code is ${otp}. It expires in 5 minutes.\n\nIf you did not request this code, ignore this email.\n\nNirogix X`,
@@ -162,11 +144,10 @@ function createOtpService({
       })
       await Promise.race([delivery, timeout])
     } catch (error) {
-      console.error('OTP email delivery failed:', error.code || error.name || 'unknown error')
+      console.error('OTP email delivery failed:', error.code || 'EMAIL_DELIVERY_FAILED')
       throw createError('The email could not be sent. Please request a new code shortly.', 503, 'OTP_DELIVERY_FAILED', true)
     } finally {
       clearTimeout(deliveryTimeout)
-      transporter.close?.()
     }
   }
 

@@ -5,8 +5,6 @@ const { createOtpService } = require('../src/services/otp.service')
 const authRoutes = require('../src/routes/auth.routes')
 
 const originalJwtSecret = process.env.JWT_SECRET
-const originalGmailUser = process.env.GMAIL_USER
-const originalGmailPassword = process.env.GMAIL_APP_PASSWORD
 
 function createMemoryModels() {
   const users = new Map()
@@ -93,7 +91,7 @@ function createMemoryModels() {
 
 function createTestOtpService({
   startTime = Date.parse('2026-01-01T00:00:00.000Z'),
-  sendMail = async () => {},
+  sendEmail = async () => {},
   emailDeliveryTimeoutMs,
 } = {}) {
   process.env.JWT_SECRET = 'test-otp-secret'
@@ -105,19 +103,11 @@ function createTestOtpService({
     now: () => currentTime,
     randomInt: () => 123456,
     emailDeliveryTimeoutMs,
-    createTransport: (options) => ({
-      sendMail: async (mail) => {
-        assert.equal(options.service, 'gmail')
-        assert.equal(options.connectionTimeout, 10_000)
-        assert.equal(options.greetingTimeout, 10_000)
-        assert.equal(options.socketTimeout, 15_000)
-        sentEmails.push(mail)
-        return sendMail(mail)
-      },
-    }),
+    sendEmail: async (mail) => {
+      sentEmails.push(mail)
+      return sendEmail(mail)
+    },
   })
-  process.env.GMAIL_USER = 'otp-sender@example.test'
-  process.env.GMAIL_APP_PASSWORD = 'test-app-password'
   return {
     ...models,
     service,
@@ -251,7 +241,7 @@ test('password reset verifies a reset-purpose OTP and consumes short-lived reset
 test('password reset waits for email delivery before completing the request', async () => {
   let finishDelivery
   const context = createTestOtpService({
-    sendMail: () => new Promise((resolve) => { finishDelivery = resolve }),
+    sendEmail: () => new Promise((resolve) => { finishDelivery = resolve }),
   })
   context.users.set('user-reset-delivery', {
     email: 'reset-delivery@example.test',
@@ -327,7 +317,7 @@ test('rejects email changes to an address already used by another account', asyn
 
 test('email delivery failures invalidate the unsent OTP and do not leave the resend cooldown locked', async () => {
   const context = createTestOtpService({
-    sendMail: async () => {
+    sendEmail: async () => {
       const error = new Error('SMTP connection timed out')
       error.code = 'ETIMEDOUT'
       throw error
@@ -358,7 +348,7 @@ test('email delivery failures invalidate the unsent OTP and do not leave the res
 test('email delivery that never resolves times out, invalidates the OTP, and releases the resend cooldown', async () => {
   const context = createTestOtpService({
     emailDeliveryTimeoutMs: 5,
-    sendMail: () => new Promise(() => {}),
+    sendEmail: () => new Promise(() => {}),
   })
   context.users.set('user-8', {
     _id: 'user-8',
@@ -393,8 +383,4 @@ test('auth routes expose the email verification and password reset endpoints', (
 test.after(() => {
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET
   else process.env.JWT_SECRET = originalJwtSecret
-  if (originalGmailUser === undefined) delete process.env.GMAIL_USER
-  else process.env.GMAIL_USER = originalGmailUser
-  if (originalGmailPassword === undefined) delete process.env.GMAIL_APP_PASSWORD
-  else process.env.GMAIL_APP_PASSWORD = originalGmailPassword
 })
