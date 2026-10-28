@@ -74,7 +74,7 @@ const ChatMessage = memo(function ChatMessage({ item, language, labels, onEmerge
   )
 })
 
-function FloatingAssistant({ accessToken }) {
+function FloatingAssistant({ accessToken, isHealthPage = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState('bn')
   const [noticeVisible, setNoticeVisible] = useState(
@@ -215,7 +215,7 @@ function FloatingAssistant({ accessToken }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
             transition={{ duration: reducedMotion ? 0 : 0.18, ease: 'easeOut' }}
-            className="assistant-panel pointer-events-auto fixed bottom-[5.75rem] right-3 flex h-[min(620px,calc(100dvh-7rem))] w-[min(410px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[26px] border border-cyan-200/20 bg-[#071827]/95 shadow-[0_24px_70px_rgba(2,8,23,0.65)] backdrop-blur-2xl sm:bottom-24 sm:right-6"
+            className={`assistant-panel pointer-events-auto fixed right-3 flex h-[min(620px,calc(100dvh-7rem))] w-[min(410px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[26px] border border-cyan-200/20 bg-[#071827]/95 shadow-[0_24px_70px_rgba(2,8,23,0.65)] backdrop-blur-2xl sm:right-6 ${isHealthPage ? 'bottom-[calc(6.75rem+env(safe-area-inset-bottom))] xl:bottom-24' : 'bottom-[5.75rem] sm:bottom-24'}`}
           >
             <header className="assistant-panel-header flex items-center justify-between gap-3 border-b border-white/10 bg-gradient-to-r from-cyan-900/35 via-slate-900/25 to-teal-900/25 px-4 py-3.5">
               <div className="flex min-w-0 items-center gap-3">
@@ -388,7 +388,7 @@ function FloatingAssistant({ accessToken }) {
         aria-expanded={isOpen}
         whileHover={reducedMotion ? undefined : { scale: 1.05 }}
         whileTap={reducedMotion ? undefined : { scale: 0.96 }}
-        className="assistant-launcher pointer-events-auto fixed bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:bottom-6 sm:right-6"
+        className={`assistant-launcher pointer-events-auto fixed right-4 flex h-14 w-14 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:right-6 ${isHealthPage ? 'bottom-[calc(5.5rem+env(safe-area-inset-bottom))] xl:bottom-6' : 'bottom-4 sm:bottom-6'}`}
       >
         {isOpen ? <X size={22} /> : <img src="/ai-assistant.png" alt="" aria-hidden="true" className="assistant-avatar-image h-9 w-9" />}
       </motion.button>

@@ -25,7 +25,7 @@ function HealthOverview({ profile }) {
             </button>
           </div>
 
-          <div className="mt-5 grid min-w-0 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4">
+          <div className="mt-5 grid min-w-0 grid-cols-2 gap-3 sm:mt-6 sm:gap-4">
             <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-4">
               <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-slate-300">
                 <CalendarDays size={14} className="text-cyan-200" />

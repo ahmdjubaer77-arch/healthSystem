@@ -372,7 +372,7 @@ function Health() {
   }
 
   return (
-    <div className="health-page min-w-0 space-y-6 py-3 sm:py-4">
+    <div className="health-page min-w-0 space-y-6 pb-24 pt-3 sm:pb-24 sm:pt-4 xl:pb-0">
       <HealthHeader />
 
       {loading ? (
@@ -391,7 +391,7 @@ function Health() {
         </>
       ) : (
       <div className="grid min-w-0 gap-4 xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-5">
-        <div className="health-section-nav-sticky sticky top-[4.75rem] z-40 min-w-0 self-start xl:top-24">
+        <div className="health-section-nav-sticky min-w-0 self-start xl:sticky xl:top-24">
           <HealthSidebar items={healthSidebarItems} activeSection={activeSection} onSelect={handleSectionSelect} />
         </div>
 

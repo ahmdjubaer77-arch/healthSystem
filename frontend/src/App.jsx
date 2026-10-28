@@ -125,7 +125,7 @@ function App() {
           </main>
           {!isAdminRoute && <Footer />}
         </div>
-        {showAssistant && <FloatingAssistant accessToken={accessToken} />}
+        {showAssistant && <FloatingAssistant accessToken={accessToken} isHealthPage={location.pathname === '/health'} />}
       </div>
     </ErrorBoundary>
   )

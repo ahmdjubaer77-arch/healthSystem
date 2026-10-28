@@ -6,7 +6,7 @@ function HealthSummary({ summaryItems }) {
 
   return (
     <section>
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 2xl:grid-cols-3">
         {summaryItems.map((item) => {
           const Icon = IconMap[item.icon] || IconMap.FileText
 

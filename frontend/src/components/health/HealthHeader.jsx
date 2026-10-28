@@ -12,9 +12,9 @@ function HealthHeader() {
             Private Health Information
           </div>
 
-          <h1 className="text-3xl font-bold tracking-[-0.05em] text-white sm:text-4xl">My health</h1>
+          <h1 className="text-3xl font-bold tracking-[-0.05em] text-white sm:text-4xl">Health records</h1>
           <p className="mt-3 max-w-xl text-sm text-slate-200 sm:text-base">
-            Keep your health information organized in one place.
+            Manage your medical history, reports and medications.
           </p>
         </div>
 

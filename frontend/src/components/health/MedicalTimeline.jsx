@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarDays, Clock3, Eye, PencilLine, Plus, Trash2, X } from 'lucide-react'
+import { CalendarDays, ChevronRight, Clock3, Eye, PencilLine, Plus, Trash2, X } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
 import ConfirmModal from '../common/ConfirmModal'
 
@@ -294,7 +294,7 @@ function MedicalTimeline({
             No medical records match these dates. Add a patient-entered record or adjust the date filter.
           </div>
         ) : (
-          <div className="relative space-y-4 before:absolute before:bottom-2 before:left-[18px] before:top-2 before:w-px before:bg-white/10">
+          <div className="health-timeline-list relative space-y-4 before:absolute before:bottom-2 before:left-[18px] before:top-2 before:w-px before:bg-white/10">
             {events.map((event) => {
               const label = recordTypes[event.recordType]?.label || event.recordType?.replaceAll('_', ' ') || 'Medical record'
               return (
@@ -302,16 +302,29 @@ function MedicalTimeline({
                   <div className="absolute left-0 top-1 flex h-9 w-9 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-400/10 text-cyan-100">
                     <CalendarDays size={14} />
                   </div>
-                  <GlassCard className="p-4 sm:p-5">
+                  <GlassCard className="health-timeline-card p-4 sm:p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
-                        <p className="text-xs uppercase tracking-[0.16em] text-slate-300">{new Date(event.date).toLocaleDateString()}</p>
-                        <h3 className="mt-1 text-lg font-semibold text-white">{event.title}</h3>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 text-xs font-medium text-slate-300">
+                            <CalendarDays size={13} className="text-cyan-200" />
+                            {new Date(event.date).toLocaleDateString()}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setViewing(event)}
+                            aria-label={`View ${event.title}`}
+                            className="health-timeline-open flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-cyan-400/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+                          >
+                            <ChevronRight size={19} />
+                          </button>
+                        </div>
+                        <h3 className="mt-1 break-words text-lg font-semibold text-white">{event.title}</h3>
                         <p className="mt-1 text-xs font-medium text-cyan-100">{label}</p>
                         {event.description && <p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{event.description}</p>}
                         <p className="mt-2 text-xs text-amber-100/80">{authorshipLabel(event.source)}</p>
                       </div>
-                      <div className="flex shrink-0 gap-2">
+                      <div className="flex shrink-0 gap-2 border-t border-white/10 pt-3 sm:border-0 sm:pt-0">
                         <button type="button" onClick={() => setViewing(event)} aria-label={`View ${event.title}`} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"><Eye size={15} /></button>
                         {recordTypes[event.recordType] && (
                           <button type="button" onClick={() => openEditRecord(event)} aria-label={`Edit ${event.title}`} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"><PencilLine size={15} /></button>
