@@ -1,20 +1,27 @@
 import { Link } from 'react-router-dom'
-import { HeartPulse } from 'lucide-react'
 import { useLanguage } from '../../context/LanguageContext'
 
 function Brand() {
   const { t } = useLanguage()
 
   return (
-    <Link to="/" className="navbar-brand flex min-w-0 shrink-0 items-center gap-2.5 rounded-2xl border border-transparent px-1 py-1 transition hover:border-white/10 hover:bg-white/5 sm:gap-3">
-      <div className="navbar-brand-mark flex h-10 w-10 items-center justify-center rounded-full border border-cyan-300/30 bg-cyan-400/15 text-cyan-100 sm:h-11 sm:w-11">
-        <HeartPulse size={20} aria-hidden="true" />
-      </div>
-      <div className="min-w-0 leading-tight">
-        <div className="navbar-wordmark whitespace-nowrap text-[11px] font-bold tracking-[0.08em] text-cyan-100 sm:text-xs">
-          Nirogix <span className="navbar-wordmark-x">X</span>
+    <Link
+      to="/"
+      className="navbar-brand group flex min-w-0 shrink-0 items-center gap-2 rounded-xl px-1 py-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60 sm:gap-2.5"
+    >
+      <img
+        className="navbar-brand-mark h-10 w-10 shrink-0 object-contain sm:h-12 sm:w-12"
+        src="/nirogix-x-mark.svg"
+        alt=""
+        aria-hidden="true"
+      />
+      <div className="min-w-0 leading-none">
+        <div className="navbar-wordmark whitespace-nowrap text-[17px] font-extrabold tracking-[-0.045em] sm:text-[19px]">
+          Nirogix<span className="navbar-wordmark-x ml-0.5">X</span>
         </div>
-        <div className="hidden whitespace-nowrap text-[10px] text-slate-300 sm:block">{t('brandTagline', 'Your Health, Connected.')}</div>
+        <div className="navbar-tagline mt-1 hidden whitespace-nowrap text-[8px] font-medium tracking-[0.13em] sm:block sm:text-[9px]">
+          {t('brandTagline', 'Your Health, Connected.')}
+        </div>
       </div>
     </Link>
   )

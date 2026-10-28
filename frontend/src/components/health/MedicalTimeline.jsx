@@ -245,8 +245,8 @@ function MedicalTimeline({
 
   return (
     <section id="medical-timeline" className="scroll-mt-24">
-      <GlassCard className="p-5 sm:p-6">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <GlassCard className="min-w-0 p-4 sm:p-6">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-2 text-cyan-100">
               <Clock3 size={18} />
@@ -256,33 +256,33 @@ function MedicalTimeline({
               <h2 className="text-2xl font-bold text-white">Medical timeline</h2>
             </div>
           </div>
-          <button type="button" className={buttonClass} onClick={openNewRecord}>
+          <button type="button" className={`${buttonClass} min-h-11 w-full sm:w-auto`} onClick={openNewRecord}>
             <Plus size={16} /> Add record
           </button>
         </div>
 
         <form
-          className="mb-5 flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-slate-950/20 p-3"
+          className="mb-5 grid min-w-0 grid-cols-1 items-end gap-3 rounded-2xl border border-white/10 bg-slate-950/20 p-3 sm:flex sm:flex-wrap"
           onSubmit={(event) => {
             event.preventDefault()
             onDateFilter(dateRange)
           }}
         >
-          <label className="grid gap-1 text-xs text-slate-300">
+          <label className="grid min-w-0 gap-1 text-xs text-slate-300 sm:w-[10.5rem]">
             From
-            <input type="date" value={dateRange.from} onChange={(event) => setDateRange((range) => ({ ...range, from: event.target.value }))} className={inputClass} />
+            <input type="date" value={dateRange.from} onChange={(event) => setDateRange((range) => ({ ...range, from: event.target.value }))} className={`${inputClass} min-h-11`} />
           </label>
-          <label className="grid gap-1 text-xs text-slate-300">
+          <label className="grid min-w-0 gap-1 text-xs text-slate-300 sm:w-[10.5rem]">
             To
-            <input type="date" value={dateRange.to} onChange={(event) => setDateRange((range) => ({ ...range, to: event.target.value }))} className={inputClass} />
+            <input type="date" value={dateRange.to} onChange={(event) => setDateRange((range) => ({ ...range, to: event.target.value }))} className={`${inputClass} min-h-11`} />
           </label>
-          <button type="submit" className={buttonClass}>Filter dates</button>
+          <button type="submit" className={`${buttonClass} min-h-11 w-full sm:w-auto`}>Filter dates</button>
           {(dateRange.from || dateRange.to) && (
-            <button type="button" onClick={() => { setDateRange({ from: '', to: '' }); onDateFilter({ from: '', to: '' }) }} className="rounded-full px-3 py-2 text-sm text-slate-300 hover:bg-white/5">
+            <button type="button" onClick={() => { setDateRange({ from: '', to: '' }); onDateFilter({ from: '', to: '' }) }} className="min-h-11 rounded-full px-3 py-2 text-sm text-slate-300 hover:bg-white/5">
               Clear
             </button>
           )}
-          <span className="ml-auto text-xs text-slate-400">{paginationLabel}</span>
+          <span className="text-xs text-slate-400 sm:ml-auto">{paginationLabel}</span>
         </form>
 
         {error && <p role="alert" className="mb-4 rounded-xl border border-red-300/20 bg-red-500/10 p-3 text-sm text-red-100">{error}</p>}
@@ -312,11 +312,11 @@ function MedicalTimeline({
                         <p className="mt-2 text-xs text-amber-100/80">{authorshipLabel(event.source)}</p>
                       </div>
                       <div className="flex shrink-0 gap-2">
-                        <button type="button" onClick={() => setViewing(event)} aria-label={`View ${event.title}`} className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 hover:bg-white/10"><Eye size={15} /></button>
+                        <button type="button" onClick={() => setViewing(event)} aria-label={`View ${event.title}`} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"><Eye size={15} /></button>
                         {recordTypes[event.recordType] && (
-                          <button type="button" onClick={() => openEditRecord(event)} aria-label={`Edit ${event.title}`} className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 hover:bg-white/10"><PencilLine size={15} /></button>
+                          <button type="button" onClick={() => openEditRecord(event)} aria-label={`Edit ${event.title}`} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"><PencilLine size={15} /></button>
                         )}
-                        <button type="button" onClick={() => { setDeleting(event); setDeleteError('') }} aria-label={`Delete ${event.title}`} className="rounded-full border border-red-300/20 bg-red-500/10 p-2 text-red-100 hover:bg-red-500/20"><Trash2 size={15} /></button>
+                        <button type="button" onClick={() => { setDeleting(event); setDeleteError('') }} aria-label={`Delete ${event.title}`} className="flex h-11 w-11 items-center justify-center rounded-full border border-red-300/20 bg-red-500/10 text-red-100 hover:bg-red-500/20"><Trash2 size={15} /></button>
                       </div>
                     </div>
                   </GlassCard>
@@ -327,10 +327,10 @@ function MedicalTimeline({
         )}
 
         {pagination?.totalPages > 1 && (
-          <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-            <button type="button" className={buttonClass} disabled={loading || pagination.page <= 1} onClick={() => onPageChange(pagination.page - 1)}>Previous</button>
-            <span className="text-sm text-slate-300">Page {pagination.page} of {pagination.totalPages}</span>
-            <button type="button" className={buttonClass} disabled={loading || pagination.page >= pagination.totalPages} onClick={() => onPageChange(pagination.page + 1)}>Next</button>
+          <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-white/10 pt-4">
+            <button type="button" className={`${buttonClass} min-h-11 px-2 sm:px-4`} disabled={loading || pagination.page <= 1} onClick={() => onPageChange(pagination.page - 1)}>Previous</button>
+            <span className="whitespace-nowrap text-center text-xs text-slate-300 sm:text-sm">Page {pagination.page} of {pagination.totalPages}</span>
+            <button type="button" className={`${buttonClass} min-h-11 px-2 sm:px-4`} disabled={loading || pagination.page >= pagination.totalPages} onClick={() => onPageChange(pagination.page + 1)}>Next</button>
           </div>
         )}
       </GlassCard>

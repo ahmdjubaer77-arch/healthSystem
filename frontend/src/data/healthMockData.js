@@ -19,19 +19,19 @@ export const healthSummaryItems = [
 ]
 
 export const healthSidebarItems = [
-  'Overview',
-  'Medical Timeline',
-  'Wellness & appointments',
-  'Medications',
-  'Prescriptions',
-  'Reports',
-  'Doctor Visits',
-  'Hospital Visits',
-  'Vaccinations',
-  'Documents',
-  'Shared with Me',
-  'Sharing & Consent',
-  'Access History',
+  { id: 'overview', label: 'Overview' },
+  { id: 'emergency-info', label: 'Emergency info' },
+  { id: 'medical-timeline', label: 'Medical timeline' },
+  { id: 'medications', label: 'Medications' },
+  { id: 'prescriptions', label: 'Prescriptions' },
+  { id: 'reports', label: 'Reports' },
+  { id: 'doctor-visits', label: 'Doctor visits' },
+  { id: 'hospital-visits', label: 'Hospital visits' },
+  { id: 'vaccinations', label: 'Vaccinations' },
+  { id: 'documents', label: 'Documents' },
+  { id: 'shared-with-me', label: 'Shared with me' },
+  { id: 'sharing-consent', label: 'Sharing & consent' },
+  { id: 'access-history', label: 'Access history' },
 ]
 
 export const emergencyHealthInfo = {

@@ -6,7 +6,7 @@ function HealthSummary({ summaryItems }) {
 
   return (
     <section>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 sm:gap-4 2xl:grid-cols-3">
         {summaryItems.map((item) => {
           const Icon = IconMap[item.icon] || IconMap.FileText
 
@@ -15,9 +15,9 @@ function HealthSummary({ summaryItems }) {
               key={item.id}
               href={`#${item.target}`}
               aria-label={`View ${item.count} ${item.label.toLowerCase()}`}
-              className="group block rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="group block min-w-0 rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <GlassCard className="h-full p-4 transition duration-200 group-hover:-translate-y-0.5 group-hover:border-cyan-300/40 group-hover:shadow-lg group-focus-visible:border-cyan-300/50 sm:p-5">
+              <GlassCard className="h-full min-w-0 p-4 transition duration-200 group-hover:-translate-y-0.5 group-hover:border-cyan-300/40 group-hover:shadow-lg group-focus-visible:border-cyan-300/50 sm:p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-3 text-cyan-100">
                   <Icon size={18} />

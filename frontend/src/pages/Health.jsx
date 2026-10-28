@@ -93,6 +93,35 @@ function Health() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (loading) return undefined
+
+    let animationFrame = 0
+    const updateActiveSection = () => {
+      window.cancelAnimationFrame(animationFrame)
+      animationFrame = window.requestAnimationFrame(() => {
+        const focusLine = window.innerHeight * 0.32
+        let currentSection = null
+
+        healthSidebarItems.forEach(({ id }) => {
+          const section = document.getElementById(id)
+          if (section && section.getBoundingClientRect().top <= focusLine) currentSection = id
+        })
+
+        setActiveSection(currentSection || healthSidebarItems.find(({ id }) => document.getElementById(id))?.id || 'overview')
+      })
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    window.addEventListener('resize', updateActiveSection)
+    return () => {
+      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener('scroll', updateActiveSection)
+      window.removeEventListener('resize', updateActiveSection)
+    }
+  }, [loading, profile])
+
+  useEffect(() => {
     let active = true
 
     const loadHealthData = async () => {
@@ -343,7 +372,7 @@ function Health() {
   }
 
   return (
-    <div className="health-page space-y-6 py-4">
+    <div className="health-page min-w-0 space-y-6 py-3 sm:py-4">
       <HealthHeader />
 
       {loading ? (
@@ -361,12 +390,12 @@ function Health() {
           </section>
         </>
       ) : (
-      <div className="grid gap-5 xl:grid-cols-[280px_1fr]">
-        <div className="xl:sticky xl:top-24 xl:self-start">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-5">
+        <div className="health-section-nav-sticky sticky top-[4.75rem] z-40 min-w-0 self-start xl:top-24">
           <HealthSidebar items={healthSidebarItems} activeSection={activeSection} onSelect={handleSectionSelect} />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-5 sm:space-y-6">
           <HealthOverview profile={healthProfile} />
           <EmergencyHealthInfo emergencyInfo={emergencyHealthInfo} />
           <HealthSummary summaryItems={healthSummaryItems} />

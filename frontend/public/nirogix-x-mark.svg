@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="nx-gradient" x1="20" y1="17" x2="80" y2="78" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08E2D6"/>
+      <stop offset=".52" stop-color="#078BFA"/>
+      <stop offset="1" stop-color="#0737B9"/>
+    </linearGradient>
+    <linearGradient id="plus-gradient" x1="66" y1="21" x2="83" y2="39" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08DAD9"/>
+      <stop offset="1" stop-color="#0875EF"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M20 71V29c0-15 13-21 24-10l26 26c5 5 5 11 0 16l-7 7-25-25v28c0 12-18 12-18 0Z"
+    fill="url(#nx-gradient)"
+  />
+  <path
+    d="m66 47 15-16c1-1 2-2 4-2h10L77 49l18 19H84c-2 0-3-1-4-2L63 49l3-2Z"
+    fill="url(#nx-gradient)"
+  />
+  <path
+    d="m65 55 12 12 6 6c1 1 2 2 4 2h10L78 56 68 45l-8 8 5 2Z"
+    fill="url(#nx-gradient)"
+  />
+  <path
+    d="M72 21v15m-7.5-7.5h15"
+    stroke="url(#plus-gradient)"
+    stroke-width="8"
+    stroke-linecap="round"
+  />
+</svg>

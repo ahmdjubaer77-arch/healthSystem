@@ -17,7 +17,7 @@ const copy = {
     privacy: 'Eligible general-chat messages and recent context may be sent to Google Gemini. Health-related requests and detected personal identifiers are screened before Gemini is contacted. Please avoid sharing private information; this app does not save chat history.',
     dismissNotice: 'Got it',
     consent: 'I agree to send eligible messages and recent chat context to Google Gemini.',
-    loading: 'Thinking…',
+    loading: 'Typing…',
     clear: 'Clear chat',
     unavailable: 'Couldn’t send your message.',
     retry: 'Try again',
@@ -39,7 +39,7 @@ const copy = {
     privacy: 'সাধারণ কথোপকথনের উপযুক্ত বার্তা ও সাম্প্রতিক প্রসঙ্গ Google Gemini-তে পাঠানো হতে পারে। স্বাস্থ্যবিষয়ক অনুরোধ ও শনাক্ত হওয়া ব্যক্তিগত তথ্য Gemini-তে পাঠানোর আগে যাচাই করা হয়। তবু গোপন তথ্য দেবেন না; এই অ্যাপ চ্যাটের ইতিহাস সংরক্ষণ করে না।',
     dismissNotice: 'বুঝেছি',
     consent: 'উপযুক্ত বার্তা ও সাম্প্রতিক প্রসঙ্গ Google Gemini-তে পাঠাতে সম্মত।',
-    loading: 'একটু ভাবছি…',
+    loading: 'লিখছে…',
     clear: 'চ্যাট মুছুন',
     unavailable: 'বার্তা পাঠানো যায়নি।',
     retry: 'আবার চেষ্টা',
@@ -86,7 +86,7 @@ function FloatingAssistant({ accessToken }) {
   const [error, setError] = useState('')
   const [messages, setMessages] = useState([])
   const reducedMotion = useReducedMotion()
-  const endRef = useRef(null)
+  const messageListRef = useRef(null)
   const launcherRef = useRef(null)
   const requestControllerRef = useRef(null)
   const requestInFlightRef = useRef(false)
@@ -113,8 +113,9 @@ function FloatingAssistant({ accessToken }) {
   useEffect(() => () => requestControllerRef.current?.abort(), [])
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: reducedMotion || isSending ? 'instant' : 'smooth', block: 'end' })
-  }, [messages, isSending, reducedMotion])
+    const messageList = messageListRef.current
+    if (messageList) messageList.scrollTop = messageList.scrollHeight
+  }, [messages, isSending])
 
   const sendMessage = async (text = draft) => {
     const message = text.trim()
@@ -265,7 +266,11 @@ function FloatingAssistant({ accessToken }) {
               </div>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3 py-4 sm:px-4" aria-live="polite">
+            <div
+              ref={messageListRef}
+              className="assistant-message-list flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4"
+              aria-live="polite"
+            >
               {messages.length === 0 && (
                 <div className="m-auto max-w-[270px] text-center">
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-cyan-200/15 bg-cyan-300/5">
@@ -279,13 +284,17 @@ function FloatingAssistant({ accessToken }) {
               ))}
               {isSending && !messages[messages.length - 1]?.text && (
                 <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-white/10 bg-slate-800/75 px-3.5 py-2.5 text-xs text-slate-300" role="status">
-                    <LoaderCircle size={14} className="animate-spin text-cyan-200" />
-                    {labels.loading}
+                  <div
+                    className="assistant-typing-indicator flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-white/10 bg-slate-800/75 px-3.5 py-3"
+                    role="status"
+                    aria-label={labels.loading}
+                  >
+                    <span className="assistant-typing-dot" />
+                    <span className="assistant-typing-dot" />
+                    <span className="assistant-typing-dot" />
                   </div>
                 </div>
               )}
-              <div ref={endRef} />
             </div>
 
             <div className="assistant-panel-composer border-t border-white/10 bg-slate-950/25 px-3 pb-3 pt-2.5 sm:px-4">
@@ -379,7 +388,7 @@ function FloatingAssistant({ accessToken }) {
         aria-expanded={isOpen}
         whileHover={reducedMotion ? undefined : { scale: 1.05 }}
         whileTap={reducedMotion ? undefined : { scale: 0.96 }}
-        className="pointer-events-auto fixed bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-100/25 bg-gradient-to-br from-cyan-400 to-teal-400 text-slate-950 shadow-[0_12px_36px_rgba(6,182,212,0.32)] transition-shadow hover:shadow-[0_14px_42px_rgba(6,182,212,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:bottom-6 sm:right-6"
+        className="assistant-launcher pointer-events-auto fixed bottom-4 right-4 flex h-14 w-14 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:bottom-6 sm:right-6"
       >
         {isOpen ? <X size={22} /> : <img src="/ai-assistant.png" alt="" aria-hidden="true" className="assistant-avatar-image h-9 w-9" />}
       </motion.button>
