@@ -28,11 +28,12 @@ should receive feedback. Keep these values in the backend environment only; do n
 to the frontend environment or commit real credentials.
 
 ## Email OTP verification and password reset
-Email OTP uses the existing backend `GMAIL_USER` and `GMAIL_APP_PASSWORD` variables; no
-additional Render environment variable is required. `JWT_SECRET` is used to HMAC-hash OTPs
-at rest. Codes expire after five minutes, are limited to five verification attempts, and can
-be resent once per minute. OTPs are stored in the `OneTimeCode` MongoDB collection with a TTL
-index.
+Email OTP uses the backend-only `GMAIL_USER` and `GMAIL_APP_PASSWORD` variables. Render Free
+web services block outbound SMTP on ports 25, 465, and 587, so Gmail SMTP delivery requires a
+Render plan that permits outbound SMTP or an email provider with an HTTPS API. `JWT_SECRET`
+is used to HMAC-hash OTPs at rest. Codes expire after five minutes, are limited to five
+verification attempts, and can be resent once per minute. OTPs are stored in the
+`OneTimeCode` MongoDB collection with a TTL index.
 
 The public auth endpoints are:
 - `POST /api/auth/email/verification/request`

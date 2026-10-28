@@ -57,13 +57,17 @@ async function verifyEmail(req, res, next) {
   }
 }
 
-async function requestPasswordReset(req, res) {
-  await otpService.requestPasswordReset(req.body?.email, { waitForCompletion: false })
-  res.status(200).json({
-    success: true,
-    message: 'If an account exists for that email, a verification code will be sent.',
-    data: null,
-  })
+async function requestPasswordReset(req, res, next) {
+  try {
+    await otpService.requestPasswordReset(req.body?.email, { waitForCompletion: true })
+    res.status(200).json({
+      success: true,
+      message: 'If an account exists for that email, a verification code will be sent.',
+      data: null,
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 async function verifyPasswordResetCode(req, res, next) {

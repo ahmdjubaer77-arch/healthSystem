@@ -248,6 +248,29 @@ test('password reset verifies a reset-purpose OTP and consumes short-lived reset
   )
 })
 
+test('password reset waits for email delivery before completing the request', async () => {
+  let finishDelivery
+  const context = createTestOtpService({
+    sendMail: () => new Promise((resolve) => { finishDelivery = resolve }),
+  })
+  context.users.set('user-reset-delivery', {
+    email: 'reset-delivery@example.test',
+    name: 'Reset Delivery User',
+    accountStatus: 'ACTIVE',
+  })
+
+  let requestCompleted = false
+  const request = context.service.requestPasswordReset('reset-delivery@example.test')
+    .then(() => { requestCompleted = true })
+  await new Promise((resolve) => setImmediate(resolve))
+
+  assert.equal(context.sentEmails.length, 1)
+  assert.equal(requestCompleted, false)
+  finishDelivery()
+  await request
+  assert.equal(requestCompleted, true)
+})
+
 test('authenticated email change sends to the new address and updates only after purpose-bound OTP verification', async () => {
   const context = createTestOtpService()
   context.users.set('user-4', {

@@ -12,11 +12,13 @@ function errorMiddleware(error, req, res, next) {
 
   const response = {
     success: false,
-    message: statusCode >= 500 ? 'Something went wrong' : error.message || 'Something went wrong',
+    message: error.exposeMessage === true
+      ? error.message
+      : statusCode >= 500 ? 'Something went wrong' : error.message || 'Something went wrong',
     data: null,
   }
 
-  if (statusCode < 500 && error.code) response.code = error.code
+  if ((statusCode < 500 || error.exposeMessage === true) && error.code) response.code = error.code
   res.status(statusCode).json(response)
 }
 

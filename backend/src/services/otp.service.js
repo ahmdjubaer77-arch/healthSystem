@@ -9,10 +9,11 @@ const RESEND_COOLDOWN_MS = 60 * 1000
 const MAX_ATTEMPTS = 5
 const PASSWORD_SALT_ROUNDS = 12
 
-function createError(message, statusCode, code) {
+function createError(message, statusCode, code, exposeMessage = false) {
   const error = new Error(message)
   error.statusCode = statusCode
   if (code) error.code = code
+  if (exposeMessage) error.exposeMessage = true
   return error
 }
 
@@ -60,7 +61,7 @@ function createOtpService({
   function createTransporter() {
     const { GMAIL_USER, GMAIL_APP_PASSWORD } = process.env
     if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
-      throw createError('Email verification is not configured. Please try again later.', 503)
+      throw createError('Email verification is not configured. Please try again later.', 503, 'OTP_DELIVERY_FAILED', true)
     }
 
     return createTransport({
@@ -162,7 +163,7 @@ function createOtpService({
       await Promise.race([delivery, timeout])
     } catch (error) {
       console.error('OTP email delivery failed:', error.code || error.name || 'unknown error')
-      throw createError('The email could not be sent. Please request a new code shortly.', 503, 'OTP_DELIVERY_FAILED')
+      throw createError('The email could not be sent. Please request a new code shortly.', 503, 'OTP_DELIVERY_FAILED', true)
     } finally {
       clearTimeout(deliveryTimeout)
       transporter.close?.()
@@ -330,7 +331,7 @@ function createOtpService({
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) return
       const user = await UserModel.findOne({ email: normalizedEmail, accountStatus: 'ACTIVE' })
       if (!user || user.donorStandalone) return
-      await issueCode(normalizedEmail, user.name, 'PASSWORD_RESET')
+      await issueCode(normalizedEmail, user.name, 'PASSWORD_RESET', true)
     }
 
     if (waitForCompletion) return operation()
