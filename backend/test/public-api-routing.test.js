@@ -103,6 +103,20 @@ test('OPTIONS preflight allows the configured production origin and requested AP
   assert.match(result.headers['access-control-allow-headers'], /Authorization/i)
 })
 
+test('OPTIONS preflight allows the deployed Vercel origin', () => {
+  const origin = 'https://health-system-jubaer-ahmed-s-projects.vercel.app'
+  const result = invokeCors({
+    method: 'OPTIONS',
+    headers: {
+      origin,
+      'access-control-request-method': 'GET',
+    },
+  })
+
+  assert.equal(result.headers['access-control-allow-origin'], origin)
+  assert.equal(result.res.statusCode, 204)
+})
+
 test('CORS does not allow unrelated production origins', () => {
   const result = invokeCors({
     method: 'OPTIONS',

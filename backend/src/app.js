@@ -14,6 +14,10 @@ const notFoundMiddleware = require('./middleware/notFound.middleware')
 const { isAllowedClientOrigin } = require('./utils/client-origin')
 
 const app = express()
+const clientOrigins = [
+  process.env.CLIENT_URL,
+  'https://health-system-jubaer-ahmed-s-projects.vercel.app',
+].filter(Boolean).join(',')
 
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
@@ -42,7 +46,7 @@ app.use((req, res, next) => {
 
 app.use(cors({
   origin(origin, callback) {
-    callback(null, isAllowedClientOrigin(origin, process.env.CLIENT_URL))
+    callback(null, isAllowedClientOrigin(origin, clientOrigins))
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
