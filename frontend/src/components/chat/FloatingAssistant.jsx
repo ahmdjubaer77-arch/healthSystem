@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, LoaderCircle, Send, ShieldCheck, Trash2, X } from 'lucide-react'
+import { AlertCircle, ArrowRight, LoaderCircle, Send, Trash2, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -13,10 +13,6 @@ const copy = {
     placeholder: 'Ask here',
     send: 'Send message',
     empty: 'Hi there! What would you like to talk about?',
-    noticeTitle: 'A quick privacy notice',
-    privacy: 'Eligible general-chat messages and recent context may be sent to Google Gemini. Health-related requests and detected personal identifiers are screened before Gemini is contacted. Please avoid sharing private information; this app does not save chat history.',
-    dismissNotice: 'Got it',
-    consent: 'I agree to send eligible messages and recent chat context to Google Gemini.',
     loading: 'Typing…',
     clear: 'Clear chat',
     unavailable: 'Couldn’t send your message.',
@@ -35,10 +31,6 @@ const copy = {
     placeholder: 'এখানে লিখুন',
     send: 'বার্তা পাঠান',
     empty: 'হ্যালো! কী নিয়ে কথা বলতে চান?',
-    noticeTitle: 'গোপনীয়তা সম্পর্কে ছোট্ট নোটিশ',
-    privacy: 'সাধারণ কথোপকথনের উপযুক্ত বার্তা ও সাম্প্রতিক প্রসঙ্গ Google Gemini-তে পাঠানো হতে পারে। স্বাস্থ্যবিষয়ক অনুরোধ ও শনাক্ত হওয়া ব্যক্তিগত তথ্য Gemini-তে পাঠানোর আগে যাচাই করা হয়। তবু গোপন তথ্য দেবেন না; এই অ্যাপ চ্যাটের ইতিহাস সংরক্ষণ করে না।',
-    dismissNotice: 'বুঝেছি',
-    consent: 'উপযুক্ত বার্তা ও সাম্প্রতিক প্রসঙ্গ Google Gemini-তে পাঠাতে সম্মত।',
     loading: 'লিখছে…',
     clear: 'চ্যাট মুছুন',
     unavailable: 'বার্তা পাঠানো যায়নি।',
@@ -77,11 +69,7 @@ const ChatMessage = memo(function ChatMessage({ item, language, labels, onEmerge
 function FloatingAssistant({ accessToken, isHealthPage = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState('bn')
-  const [noticeVisible, setNoticeVisible] = useState(
-    () => typeof window !== 'undefined' && window.sessionStorage.getItem('assistant-privacy-notice-dismissed') !== 'true',
-  )
   const [draft, setDraft] = useState('')
-  const [consent, setConsent] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState('')
   const [messages, setMessages] = useState([])
@@ -119,7 +107,7 @@ function FloatingAssistant({ accessToken, isHealthPage = false }) {
 
   const sendMessage = async (text = draft) => {
     const message = text.trim()
-    if (!message || !accessToken || !consent || requestInFlightRef.current) return
+    if (!message || !accessToken || requestInFlightRef.current) return
 
     requestInFlightRef.current = true
     const requestId = globalThis.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
@@ -298,44 +286,13 @@ function FloatingAssistant({ accessToken, isHealthPage = false }) {
             </div>
 
             <div className="assistant-panel-composer border-t border-white/10 bg-slate-950/25 px-3 pb-3 pt-2.5 sm:px-4">
-              {noticeVisible && (
-                <div className="mb-2 rounded-xl border border-cyan-200/15 bg-cyan-300/5 p-2.5">
-                  <div className="flex items-start gap-2">
-                    <ShieldCheck size={14} className="mt-0.5 shrink-0 text-cyan-200/80" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold text-slate-200">{labels.noticeTitle}</p>
-                      <p className="mt-1 text-[10px] leading-relaxed text-slate-400">{labels.privacy}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.sessionStorage.setItem('assistant-privacy-notice-dismissed', 'true')
-                        setNoticeVisible(false)
-                      }}
-                      className="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-semibold text-cyan-100 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
-                    >
-                      {labels.dismissNotice}
-                    </button>
-                  </div>
-                </div>
-              )}
-              <label className="mb-2 flex cursor-pointer items-start gap-2 text-[11px] leading-relaxed text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(event) => setConsent(event.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-cyan-400"
-                />
-                <span>{labels.consent}</span>
-              </label>
-
               {error && (
                 <div className="mb-2 flex items-start justify-between gap-2 rounded-xl border border-rose-300/15 bg-rose-500/10 px-2.5 py-2 text-xs text-rose-100" role="alert">
                   <span className="flex min-w-0 items-start gap-1.5">
                     <AlertCircle size={14} className="mt-0.5 shrink-0" />
                     <span className="break-words">{error}</span>
                   </span>
-                  {accessToken && consent && (
+                  {accessToken && (
                     <button type="button" onClick={() => void sendMessage()} disabled={isSending} className="shrink-0 font-semibold underline underline-offset-2 disabled:opacity-50">
                       {labels.retry}
                     </button>
@@ -365,7 +322,7 @@ function FloatingAssistant({ accessToken, isHealthPage = false }) {
                   />
                   <button
                     type="submit"
-                    disabled={!draft.trim() || !consent || isSending}
+                    disabled={!draft.trim() || isSending}
                     aria-label={labels.send}
                     title={labels.send}
                     className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400/90 to-teal-400/90 text-slate-950 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
