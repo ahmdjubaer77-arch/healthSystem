@@ -197,8 +197,6 @@ test('profile routes require authentication and always update the authenticated 
   const expectedUserId = 'token-owned-user'
   const accountSecurityRoutes = [
     ['/me/change-password', 'post'],
-    ['/me/email-change/request', 'post'],
-    ['/me/email-change/confirm', 'post'],
   ]
   for (const [path, method] of accountSecurityRoutes) {
     const route = userRoutes.stack
@@ -262,5 +260,5 @@ test('application mounts user routes under the users API prefix before generic A
   assert.notEqual(userRoutesIndex, -1)
   assert.notEqual(aiRoutesIndex, -1)
   assert.ok(userRoutesIndex < aiRoutesIndex)
-  assert.ok(layers[userRoutesIndex].regexp.test('/api/users/me/email-change/request'))
+  assert.ok(layers[userRoutesIndex].regexp.test('/api/users/me/change-password'))
 })

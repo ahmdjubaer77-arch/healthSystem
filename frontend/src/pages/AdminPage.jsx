@@ -1,4 +1,4 @@
-import { Activity, BellRing, CalendarDays, ClipboardList, HeartPulse, MessageSquareWarning, ShieldCheck, UsersRound } from 'lucide-react'
+import { Activity, BellRing, CalendarDays, HeartPulse, MessageSquareWarning, ShieldCheck, UsersRound } from 'lucide-react'
 import AdminBreadcrumb from '../components/admin/AdminBreadcrumb'
 import AdminPageContainer from '../components/admin/AdminPageContainer'
 import AdminPageHeader from '../components/admin/AdminPageHeader'
@@ -19,7 +19,6 @@ const pageMeta = {
   'Blood requests': { eyebrow: 'Emergency operations', description: 'Review and coordinate blood donation requests.', icon: Activity },
   'Emergency requests': { eyebrow: 'Emergency operations', description: 'Monitor urgent requests and response activity.', icon: Activity },
   Appointments: { eyebrow: 'Scheduling', description: "Review doctor's appointment requests and status.", icon: CalendarDays },
-  Reviews: { eyebrow: 'Feedback', description: 'Review patient feedback and ratings.', icon: ClipboardList },
   Complaints: { eyebrow: 'Support', description: 'Review and manage user complaints.', icon: MessageSquareWarning },
   Analytics: { eyebrow: 'Insights', description: 'Review platform performance and operational trends.', icon: Activity },
   'Audit logs': { eyebrow: 'Security', description: 'Review administrative activity and system events.', icon: ShieldCheck },

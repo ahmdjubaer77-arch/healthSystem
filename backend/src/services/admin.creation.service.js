@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const User = require('../models/User')
 const AdminAuditLog = require('../models/AdminAuditLog')
 const { createUserWithPublicId } = require('../utils/public-user-id')
+const emailActionService = require('./email-action.service')
 
 const SALT_ROUNDS = 12
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPER_ADMIN'])
@@ -60,7 +61,8 @@ async function createAdmin(input, actor) {
     passwordHash: await bcrypt.hash(password, SALT_ROUNDS),
     role,
     accountStatus: 'ACTIVE',
-    emailVerified: true,
+    emailVerified: false,
+    emailVerificationRequired: true,
   }, User)
 
   await AdminAuditLog.create({
@@ -75,6 +77,8 @@ async function createAdmin(input, actor) {
     ipAddress: actor.ipAddress || null,
     userAgent: actor.userAgent || null,
   })
+
+  await emailActionService.sendVerificationEmail(user._id)
 
   return {
     id: user._id.toString(),

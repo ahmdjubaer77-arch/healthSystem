@@ -8,6 +8,8 @@ process.env.CLIENT_URL = [
 
 const app = require('../src/app')
 const notFoundMiddleware = require('../src/middleware/notFound.middleware')
+const authRoutes = require('../src/routes/auth.routes')
+const userRoutes = require('../src/routes/user.routes')
 
 function findMountedGetRoutes(path) {
   const childPath = path.replace(/^\/api/, '')
@@ -43,6 +45,23 @@ test('public frontend API endpoints are registered exactly once under /api', () 
   ]) {
     assert.equal(findMountedGetRoutes(path).length, 1, `${path} should have one public GET route`)
   }
+})
+
+test('email authentication and profile security endpoints are mounted without feedback routes', () => {
+  const authPaths = authRoutes.stack.filter((layer) => layer.route).map((layer) => layer.route.path)
+  const userPaths = userRoutes.stack.filter((layer) => layer.route).map((layer) => layer.route.path)
+
+  assert.deepEqual(authPaths, [
+    '/register',
+    '/resend-verification',
+    '/forgot-password',
+    '/verify-email',
+    '/reset-password',
+    '/login',
+    '/me',
+  ])
+  assert.equal(userPaths.includes('/feedback'), false)
+  assert.equal(userPaths.includes('/me/change-email'), true)
 })
 
 test('unknown routes keep the standard 404 response', () => {

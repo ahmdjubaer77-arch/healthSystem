@@ -22,31 +22,15 @@ frontend domain, separate the origins with commas (for example, the production d
 the current preview deployment domain). Set Vercel's `VITE_API_BASE_URL` to
 `https://healthsystem-xe2t.onrender.com/api`.
 
-To send user feedback to Gmail, set `GMAIL_USER` to the sending Gmail address,
-`GMAIL_APP_PASSWORD` to a Google App Password, and `FEEDBACK_RECIPIENT` to the inbox that
-should receive feedback. Keep these values in the backend environment only; do not add them
-to the frontend environment or commit real credentials.
-
-## Email OTP verification and password reset
-Email OTP uses the backend-only `RESEND_API_KEY` and `EMAIL_FROM` variables and Resend's
-HTTPS API; it does not use SMTP. Set `EMAIL_FROM` to an address on a verified Resend domain
-or another sender authorized by your Resend account. Resend rejects unverified senders;
-production email is not sent through Gmail as a fallback. Never put the API key in frontend
-configuration or logs. Gmail variables remain available for the separate feedback email
-flow. `JWT_SECRET` is used to HMAC-hash OTPs at rest. Codes expire after five minutes, are
-limited to five verification attempts, and can be resent once per minute. OTPs are stored
-in the `OneTimeCode` MongoDB collection with a TTL index.
-
-The public auth endpoints are:
-- `POST /api/auth/email/verification/request`
-- `POST /api/auth/email/verification/confirm`
-- `POST /api/auth/password/reset/request`
-- `POST /api/auth/password/reset/verify`
-- `POST /api/auth/password/reset/confirm`
-
-Password reset requests always return the same generic response regardless of whether an
-account exists. Reset authorization is a random, five-minute token returned only after OTP
-verification and is kept in frontend memory between verification and password update.
+New patient and administrator accounts must verify their email before signing in. Password
+recovery and email changes use six-digit, single-use OTP codes delivered through Gmail SMTP.
+Configure `GMAIL_USER` and `GMAIL_APP_PASSWORD` in the backend environment; the latter must
+be a Google App Password. `EMAIL_FROM` is an optional sender email address and defaults
+to `GMAIL_USER`; the inbox sender display name is always `Nirogix X`. Set
+`CLIENT_URL` to the frontend origin for the website's normal API requests.
+Signed-in users can change their email from their profile after confirming their current
+password and entering the code delivered to the new address. Codes expire after 5 minutes
+and are limited to five verification attempts.
 
 ## Initial Super Admin
 Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in the backend environment to create the first Super Admin automatically. The password is hashed and stored in MongoDB. Leave both variables empty to skip bootstrap.

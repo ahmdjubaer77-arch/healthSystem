@@ -93,7 +93,7 @@ function Register() {
 
     setIsSubmitting(true)
     try {
-      const result = await registerUser({
+      await registerUser({
         name: form.fullName,
         email: form.email,
         phone: form.phone,
@@ -110,20 +110,11 @@ function Register() {
       })
       addToast({
         type: 'success',
-        title: 'Verify your email',
-        message: `We sent a 6-digit verification code to ${result.data.user.email}.`,
+        title: t('registrationSuccessful', 'Check your email'),
+        message: 'We sent a verification code. Verify your email before signing in.',
       })
-      navigate('/verify-email', { state: { email: result.data.user.email } })
+      navigate(`/verify-email?email=${encodeURIComponent(form.email.trim())}`, { replace: true })
     } catch (error) {
-      if (error.status === 503) {
-        addToast({
-          type: 'error',
-          title: 'Email delivery delayed',
-          message: 'Your account was created, but we could not send the verification code. You can try again from email verification.',
-        })
-        navigate('/verify-email', { state: { email: form.email, deliveryPending: true } })
-        return
-      }
       addToast({
         type: 'error',
         title: t('registrationFailed', 'Registration failed'),

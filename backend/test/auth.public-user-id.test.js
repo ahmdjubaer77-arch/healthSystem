@@ -2,26 +2,22 @@ const { after, test } = require('node:test')
 const assert = require('node:assert/strict')
 const bcrypt = require('bcrypt')
 const User = require('../src/models/User')
-const otpService = require('../src/services/otp.service')
 const authService = require('../src/services/auth.service')
 const { PUBLIC_USER_ID_PATTERN } = require('../src/utils/public-user-id')
 
 const originalExists = User.exists
 const originalCreate = User.create
 const originalHash = bcrypt.hash
-const originalRequestEmailVerification = otpService.requestEmailVerification
 
 after(() => {
   User.exists = originalExists
   User.create = originalCreate
   bcrypt.hash = originalHash
-  otpService.requestEmailVerification = originalRequestEmailVerification
 })
 
 test('registration persists and returns its server-generated public ID', async () => {
   User.exists = async () => null
   bcrypt.hash = async () => 'hashed-password'
-  otpService.requestEmailVerification = async () => {}
   let createdUser
   User.create = async (input) => {
     createdUser = {

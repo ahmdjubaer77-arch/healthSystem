@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Check, Copy, Edit3, HeartPulse, ImagePlus, KeyRound, Mail, Save, ShieldCheck, Trash2, UserRound, X } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Edit3, HeartPulse, ImagePlus, KeyRound, Save, ShieldCheck, Trash2, UserRound, X } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import OtpInput from '../components/auth/OtpInput'
 import GlassCard from '../components/common/GlassCard'
 import LoadingState from '../components/common/LoadingState'
 import ProfileAvatar from '../components/common/ProfileAvatar'
@@ -11,9 +10,10 @@ import {
   deleteMyAccount,
   deleteProfilePicture,
   changeAccountPassword,
-  confirmAccountEmailChange,
+  getCurrentUser,
+  requestEmailChange,
+  verifyEmail,
   getHealthProfile,
-  requestAccountEmailChange,
   saveHealthProfile,
   updateUserProfile,
   uploadProfilePicture,
@@ -56,7 +56,7 @@ function Profile() {
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [publicIdCopied, setPublicIdCopied] = useState(false)
   const [publicIdCopyError, setPublicIdCopyError] = useState('')
-  const [securityDialog, setSecurityDialog] = useState('')
+  const [securityDialog, setSecurityDialog] = useState(false)
   const [securityLoading, setSecurityLoading] = useState(false)
   const [securityError, setSecurityError] = useState('')
   const [securitySuccess, setSecuritySuccess] = useState('')
@@ -65,22 +65,13 @@ function Profile() {
     newPassword: '',
     confirmPassword: '',
   })
-  const [newEmail, setNewEmail] = useState('')
+  const [emailDialog, setEmailDialog] = useState(false)
+  const [emailForm, setEmailForm] = useState({ email: '', currentPassword: '' })
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailSuccess, setEmailSuccess] = useState('')
   const [emailCode, setEmailCode] = useState('')
   const [emailCodeSent, setEmailCodeSent] = useState(false)
-  const [emailChangeCompleted, setEmailChangeCompleted] = useState(false)
-  const [emailOtpExpiresAt, setEmailOtpExpiresAt] = useState(null)
-  const [emailOtpExpired, setEmailOtpExpired] = useState(false)
-  const [emailResendCountdown, setEmailResendCountdown] = useState(0)
-
-  useEffect(() => {
-    if (emailResendCountdown <= 0) return undefined
-    const timer = window.setTimeout(
-      () => setEmailResendCountdown((seconds) => seconds - 1),
-      1000,
-    )
-    return () => window.clearTimeout(timer)
-  }, [emailResendCountdown])
 
   const copyPublicUserId = async () => {
     if (!user?.publicUserId) return
@@ -219,24 +210,17 @@ function Profile() {
     }
   }
 
-  const openSecurityDialog = (dialog) => {
-    setSecurityDialog(dialog)
+  const openSecurityDialog = () => {
+    setSecurityDialog(true)
     setSecurityError('')
     setSecuritySuccess('')
-    setEmailChangeCompleted(false)
   }
 
   const closeSecurityDialog = () => {
     if (securityLoading) return
-    setSecurityDialog('')
+    setSecurityDialog(false)
     setSecurityError('')
     setSecuritySuccess('')
-    setEmailCode('')
-    setEmailCodeSent(false)
-    setEmailChangeCompleted(false)
-    setEmailOtpExpiresAt(null)
-    setEmailOtpExpired(false)
-    setEmailResendCountdown(0)
     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
   }
 
@@ -256,66 +240,54 @@ function Profile() {
     }
   }
 
-  const handleEmailChangeRequest = async (event) => {
+  const handleEmailChange = async (event) => {
     event.preventDefault()
-    setSecurityError('')
-    setSecuritySuccess('')
-    setSecurityLoading(true)
+    setEmailError('')
+    setEmailSuccess('')
+    setEmailLoading(true)
     try {
-      const result = await requestAccountEmailChange(accessToken, newEmail)
-      setNewEmail(result.email)
+      const result = await requestEmailChange(accessToken, emailForm)
+      setEmailSuccess(result?.message || 'Check your new email address to confirm the change.')
+      setEmailForm((form) => ({ ...form, currentPassword: '' }))
       setEmailCodeSent(true)
-      setEmailCode('')
-      setEmailOtpExpiresAt(Date.now() + 5 * 60 * 1000)
-      setEmailOtpExpired(false)
-      setEmailResendCountdown(60)
-      setSecuritySuccess(`A verification code was sent to ${result.email}.`)
     } catch (error) {
-      setSecurityError(error.message)
+      setEmailError(error.message)
     } finally {
-      setSecurityLoading(false)
+      setEmailLoading(false)
     }
   }
 
-  const handleEmailChangeConfirm = async (event) => {
+  const handleEmailConfirmation = async (event) => {
     event.preventDefault()
-    setSecurityError('')
-    setSecuritySuccess('')
-    setSecurityLoading(true)
+    setEmailError('')
+    setEmailSuccess('')
+    setEmailLoading(true)
     try {
-      const result = await confirmAccountEmailChange(accessToken, emailCode)
-      updateProfile({ email: result.email, emailVerified: true })
-      setSecuritySuccess(`Your email has been changed to ${result.email}.`)
-      setEmailChangeCompleted(true)
-      setEmailCodeSent(false)
+      await verifyEmail({
+        email: emailForm.email,
+        code: emailCode,
+        purpose: 'EMAIL_CHANGE',
+      })
+      const updatedUser = await getCurrentUser(accessToken)
+      updateProfile(updatedUser)
+      setEmailSuccess('Your email address has been changed.')
       setEmailCode('')
-      setEmailOtpExpiresAt(null)
+      setEmailCodeSent(false)
     } catch (error) {
-      setSecurityError(error.message)
-      if (error.code === 'OTP_EXPIRED') setEmailOtpExpired(true)
+      setEmailError(error.message)
     } finally {
-      setSecurityLoading(false)
+      setEmailLoading(false)
     }
   }
 
-  const handleEmailChangeResend = async () => {
-    if (emailResendCountdown > 0 || securityLoading) return
-    setSecurityError('')
-    setSecuritySuccess('')
-    setSecurityLoading(true)
-    try {
-      const result = await requestAccountEmailChange(accessToken, newEmail)
-      setNewEmail(result.email)
-      setEmailCode('')
-      setEmailOtpExpiresAt(Date.now() + 5 * 60 * 1000)
-      setEmailOtpExpired(false)
-      setEmailResendCountdown(60)
-      setSecuritySuccess(`A new verification code was sent to ${result.email}.`)
-    } catch (error) {
-      setSecurityError(error.message)
-    } finally {
-      setSecurityLoading(false)
-    }
+  const closeEmailDialog = () => {
+    if (emailLoading) return
+    setEmailDialog(false)
+    setEmailError('')
+    setEmailSuccess('')
+    setEmailForm({ email: '', currentPassword: '' })
+    setEmailCode('')
+    setEmailCodeSent(false)
   }
 
   const handleProfilePictureUpload = async (event) => {
@@ -384,6 +356,13 @@ function Profile() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Account</p>
               <h2 className="mt-2 text-2xl font-bold text-white">{user?.name || 'Account user'}</h2>
               <p className="mt-1 text-sm text-slate-300">{user?.email || 'Email unavailable'}</p>
+              <button
+                type="button"
+                onClick={() => setEmailDialog(true)}
+                className="mt-2 text-sm font-medium text-cyan-200 hover:text-white"
+              >
+                Change email
+              </button>
             </div>
           </div>
 
@@ -477,25 +456,11 @@ function Profile() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => openSecurityDialog('password')}
+                onClick={openSecurityDialog}
                 className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
               >
                 <KeyRound size={14} aria-hidden="true" />
                 Change password
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setNewEmail('')
-                  setEmailCodeSent(false)
-                  setEmailCode('')
-                  setEmailOtpExpired(false)
-                  openSecurityDialog('email')
-                }}
-                className="inline-flex items-center gap-2 rounded-full border border-cyan-300/25 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
-              >
-                <Mail size={14} aria-hidden="true" />
-                Change email
               </button>
             </div>
           </div>
@@ -815,6 +780,94 @@ function Profile() {
         </div>
       )}
 
+      {emailDialog && (
+        <div
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-sm sm:p-5"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !emailLoading) closeEmailDialog()
+          }}
+        >
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="change-email-title"
+            onSubmit={emailCodeSent ? handleEmailConfirmation : handleEmailChange}
+            className="w-full max-w-md rounded-[28px] border border-white/10 bg-slate-950/90 p-5 shadow-[0_24px_70px_rgba(2,8,23,0.5)] sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">Account security</p>
+                <h2 id="change-email-title" className="mt-2 text-xl font-semibold text-white">Change email</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-300">Confirm your password. We will update your address after you verify the new one.</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close change email dialog"
+                disabled={emailLoading}
+                onClick={closeEmailDialog}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10 disabled:opacity-50"
+              >
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="mt-5 space-y-4">
+              <ProfileField id="change-account-email" label="New email address">
+                <input
+                  id="change-account-email"
+                  type="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  required
+                  disabled={emailCodeSent}
+                  value={emailForm.email}
+                  onChange={(event) => setEmailForm((form) => ({ ...form, email: event.target.value }))}
+                  className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50"
+                />
+              </ProfileField>
+              {!emailCodeSent ? (
+                <ProfileField id="change-email-current-password" label="Current password">
+                  <input
+                    id="change-email-current-password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={emailForm.currentPassword}
+                    onChange={(event) => setEmailForm((form) => ({ ...form, currentPassword: event.target.value }))}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50"
+                  />
+                </ProfileField>
+              ) : (
+                <ProfileField id="change-email-code" label="6-digit code sent to your new email">
+                  <input
+                    id="change-email-code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    required
+                    value={emailCode}
+                    onChange={(event) => setEmailCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-3 text-center font-mono text-xl tracking-[0.5em] text-white outline-none focus:border-cyan-300/50"
+                  />
+                </ProfileField>
+              )}
+              {emailSuccess && <p className="text-sm text-emerald-200" role="status">{emailSuccess}</p>}
+              {emailError && <p className="text-sm text-red-200" role="alert">{emailError}</p>}
+              <button
+                type="submit"
+                disabled={emailLoading}
+                className="inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
+              >
+                {emailLoading
+                  ? emailCodeSent ? 'Verifying...' : 'Sending code...'
+                  : emailCodeSent ? 'Verify and change email' : 'Send confirmation code'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {securityDialog && (
         <div
           className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
@@ -831,15 +884,9 @@ function Profile() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">Account security</p>
-                <h2 id="account-security-title" className="mt-2 text-xl font-semibold text-white">
-                  {securityDialog === 'password' ? 'Change password' : 'Change email address'}
-                </h2>
+                <h2 id="account-security-title" className="mt-2 text-xl font-semibold text-white">Change password</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
-                  {securityDialog === 'password'
-                    ? 'Confirm your current password before choosing a new one.'
-                    : emailCodeSent
-                      ? `Enter the verification code sent to ${newEmail}.`
-                      : 'We will send a verification code to your new email address.'}
+                  Confirm your current password before choosing a new one.
                 </p>
               </div>
               <button
@@ -853,8 +900,7 @@ function Profile() {
               </button>
             </div>
 
-            {securityDialog === 'password' ? (
-              <form onSubmit={handlePasswordChange} className="mt-5 space-y-4">
+            <form onSubmit={handlePasswordChange} className="mt-5 space-y-4">
                 <ProfileField id="current-account-password" label="Current password">
                   <input
                     id="current-account-password"
@@ -902,76 +948,7 @@ function Profile() {
                   <KeyRound size={15} aria-hidden="true" />
                   {securityLoading ? 'Updating password...' : securitySuccess ? 'Change password again' : 'Update password'}
                 </button>
-              </form>
-            ) : emailChangeCompleted ? (
-              <div className="mt-6 space-y-5">
-                <div className="flex items-start gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                  <Check className="mt-0.5 shrink-0 text-emerald-300" size={20} aria-hidden="true" />
-                  <p className="account-security-success text-sm leading-6" role="status">
-                    {securitySuccess}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={closeSecurityDialog}
-                  className="inline-flex w-full items-center justify-center rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20"
-                >
-                  Done
-                </button>
-              </div>
-            ) : (
-              <form
-                onSubmit={emailCodeSent ? handleEmailChangeConfirm : handleEmailChangeRequest}
-                className="mt-5 space-y-4"
-              >
-                {!emailCodeSent ? (
-                  <ProfileField id="new-account-email" label="New email address">
-                    <input
-                      id="new-account-email"
-                      type="email"
-                      autoComplete="email"
-                      maxLength={254}
-                      required
-                      value={newEmail}
-                      onChange={(event) => setNewEmail(event.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-300/50"
-                    />
-                  </ProfileField>
-                ) : (
-                  <>
-                    <OtpInput
-                      value={emailCode}
-                      onChange={(value) => { setEmailCode(value); setSecurityError('') }}
-                      disabled={securityLoading}
-                      error={securityError}
-                      expiresAt={emailOtpExpiresAt}
-                      onExpired={() => setEmailOtpExpired(true)}
-                    />
-                    <button
-                      type="button"
-                      disabled={emailResendCountdown > 0 || securityLoading}
-                      onClick={handleEmailChangeResend}
-                      className="text-sm font-medium text-cyan-200 transition hover:text-white disabled:cursor-not-allowed disabled:text-slate-500"
-                    >
-                      {emailResendCountdown > 0 ? `Resend code in ${emailResendCountdown}s` : 'Resend code'}
-                    </button>
-                  </>
-                )}
-                {securitySuccess && <p className="account-security-success text-sm" role="status">{securitySuccess}</p>}
-                {securityError && !emailCodeSent && <p className="text-sm text-red-200" role="alert">{securityError}</p>}
-                <button
-                  type="submit"
-                  disabled={securityLoading || (emailCodeSent && (emailOtpExpired || emailCode.length !== 6))}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/30 bg-cyan-400/15 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
-                >
-                  <Mail size={15} aria-hidden="true" />
-                  {securityLoading
-                    ? emailCodeSent ? 'Verifying code...' : 'Sending code...'
-                    : emailCodeSent ? 'Verify and update email' : 'Send verification code'}
-                </button>
-              </form>
-            )}
+            </form>
           </section>
         </div>
       )}

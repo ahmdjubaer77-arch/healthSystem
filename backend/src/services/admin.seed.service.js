@@ -38,7 +38,8 @@ async function seedSuperAdmin() {
     passwordHash: await bcrypt.hash(password, SALT_ROUNDS),
     role: 'SUPER_ADMIN',
     accountStatus: 'ACTIVE',
-    emailVerified: true,
+    emailVerified: false,
+    emailVerificationRequired: true,
   }, User)
 }
 

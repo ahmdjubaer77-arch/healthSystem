@@ -70,16 +70,6 @@ function Login() {
         : location.state?.from || '/profile'
       navigate(destination, { replace: true })
     } catch (error) {
-      if (error.code === 'EMAIL_NOT_VERIFIED') {
-        addToast({
-          type: 'info',
-          title: 'Verify your email',
-          message: 'Enter the verification code we sent to your email before signing in.',
-        })
-        navigate('/verify-email', { state: { email: form.email.trim(), requestCode: true } })
-        return
-      }
-
       addToast({
         type: 'error',
         title: t('loginFailed', 'Sign-in failed'),
@@ -145,6 +135,9 @@ function Login() {
             </div>
 
             <div className="login-options">
+              <Link to="/forgot-password" className="text-sm font-medium text-cyan-200 hover:text-white">
+                {t('forgotPassword', 'Forgot password?')}
+              </Link>
               <label className="login-remember">
                 <input
                   type="checkbox"
@@ -154,9 +147,6 @@ function Login() {
                 />
                 {t('rememberMe', 'Remember me')}
               </label>
-              <Link to="/forgot-password" className="login-text-link">
-                {t('forgotPassword', 'Forgot password?')}
-              </Link>
             </div>
 
             <button type="submit" disabled={isSubmitting} className="login-submit">
@@ -172,6 +162,9 @@ function Login() {
               <UserPlus size={15} aria-hidden="true" />
             </Link>
           </div>
+          <p className="mt-4 text-center text-sm text-slate-400">
+            Need to verify your email? <Link to="/verify-email" className="font-medium text-cyan-200 hover:text-white">Resend verification code</Link>
+          </p>
         </div>
 
         <aside className="login-visual" aria-label="Nirogix secure care">

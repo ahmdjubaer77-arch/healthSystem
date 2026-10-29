@@ -4,15 +4,15 @@ const bcrypt = require('bcrypt')
 const User = require('../src/models/User')
 const authService = require('../src/services/auth.service')
 
-test('requires email verification for new accounts while preserving legacy account login', async () => {
+test('requires verification for new accounts while preserving legacy account login', async () => {
   const originalFindOne = User.findOne
   const originalCompare = bcrypt.compare
   const originalJwtSecret = process.env.JWT_SECRET
   const user = {
     _id: { toString: () => 'verified-user-id' },
     publicUserId: 'BDH-23456789',
-    name: 'OTP Test User',
-    email: 'otp-user@example.test',
+    name: 'Unverified Test User',
+    email: 'unverified-user@example.test',
     role: 'PATIENT',
     accountStatus: 'ACTIVE',
     donorStandalone: false,
@@ -35,6 +35,7 @@ test('requires email verification for new accounts while preserving legacy accou
     user.emailVerificationRequired = false
     const legacyLogin = await authService.login({ email: user.email, password: 'valid-password' })
     assert.ok(legacyLogin.accessToken)
+    assert.equal(legacyLogin.user.email, user.email)
 
     user.emailVerificationRequired = true
     user.emailVerified = true

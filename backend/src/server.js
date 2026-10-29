@@ -3,6 +3,7 @@ require('./config/env')
 const connectDB = require('./config/db')
 const app = require('./app')
 const { seedSuperAdmin } = require('./services/admin.seed.service')
+const emailActionService = require('./services/email-action.service')
 const User = require('./models/User')
 const { backfillMissingPublicUserIds } = require('./utils/public-user-id')
 
@@ -13,7 +14,14 @@ async function startServer() {
     await connectDB()
     await User.init()
     await backfillMissingPublicUserIds(User)
-    await seedSuperAdmin()
+    const superAdmin = await seedSuperAdmin()
+    if (superAdmin?.emailVerificationRequired && !superAdmin.emailVerified) {
+      try {
+        await emailActionService.sendVerificationEmail(superAdmin._id)
+      } catch (error) {
+        console.error('Unable to send Super Admin verification code:', error.message)
+      }
+    }
 
     const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
@@ -25,7 +33,7 @@ async function startServer() {
     })
   } catch (error) {
     const safeMessage = error.message.replace(/mongodb(?:\+srv)?:\/\/[^\s"'`]+/gi, '[REDACTED_MONGODB_URI]')
-    console.error('MongoDB connection failed:', safeMessage)
+    console.error('Server startup failed:', safeMessage)
     process.exitCode = 1
   }
 }

@@ -83,7 +83,7 @@ export const registerUser = async ({ name, email, phone, password, bloodGroup, g
   return result
 }
 
-const postAuthRequest = async (endpoint, payload, fallbackMessage) => {
+const submitAuthAction = async (endpoint, payload) => {
   if (!API_BASE_URL) throw new Error('Authentication service is not configured.')
 
   let response
@@ -93,6 +93,7 @@ const postAuthRequest = async (endpoint, payload, fallbackMessage) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      cache: 'no-store',
     })
     result = await response.json()
   } catch {
@@ -100,73 +101,46 @@ const postAuthRequest = async (endpoint, payload, fallbackMessage) => {
   }
 
   if (!response.ok || result?.success !== true) {
-    const error = new Error(result?.message || fallbackMessage)
+    const error = new Error(result?.message || 'Authentication request failed.')
     error.status = response.status
     error.code = result?.code
     throw error
   }
-
   return result
 }
 
-export const requestEmailVerification = (email) => postAuthRequest(
-  'email/verification/request',
-  { email },
-  'Unable to send a verification code. Please try again.',
+export const resendVerificationEmail = (email) => submitAuthAction('resend-verification', { email })
+
+export const requestPasswordReset = (email) => submitAuthAction('forgot-password', { email })
+
+export const verifyEmail = ({ email, code, purpose }) => (
+  submitAuthAction('verify-email', { email, code, purpose })
 )
 
-export const verifyEmailCode = (email, code) => postAuthRequest(
-  'email/verification/confirm',
-  { email, code },
-  'Unable to verify this code. Please try again.',
+export const resetPassword = ({ email, code, password, confirmPassword }) => (
+  submitAuthAction('reset-password', { email, code, password, confirmPassword })
 )
 
-export const requestPasswordReset = (email) => postAuthRequest(
-  'password/reset/request',
-  { email },
-  'Unable to request a password reset. Please try again.',
-)
-
-export const verifyPasswordResetCode = (email, code) => postAuthRequest(
-  'password/reset/verify',
-  { email, code },
-  'Unable to verify this code. Please try again.',
-)
-
-export const resetPassword = ({ email, resetToken, password, confirmPassword }) => postAuthRequest(
-  'password/reset/confirm',
-  { email, resetToken, password, confirmPassword },
-  'Unable to reset your password. Please try again.',
-)
-
-const requestMyAccountSecurityApi = async (accessToken, endpoint, payload, fallbackMessage, timeoutMessage) => {
+export const changeAccountPassword = async (accessToken, payload) => {
   if (!API_BASE_URL) throw new Error('Account security service is not configured.')
   if (!accessToken) throw new Error('Please sign in again to update your account security.')
 
   let response
   let result
-  const controller = new AbortController()
-  const timeoutId = timeoutMessage
-    ? globalThis.setTimeout(() => controller.abort(), 25_000)
-    : null
   try {
-    response = await fetch(`${API_BASE_URL}/users/me/${endpoint}`, {
+    response = await fetch(`${API_BASE_URL}/users/me/change-password`, {
       method: 'POST',
       headers: createBearerHeaders(accessToken, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
       cache: 'no-store',
-      signal: controller.signal,
     })
     result = await response.json()
-  } catch (error) {
-    if (controller.signal.aborted && timeoutMessage) throw new Error(timeoutMessage)
+  } catch {
     throw new Error('Unable to connect to the account security service.')
-  } finally {
-    if (timeoutId !== null) globalThis.clearTimeout(timeoutId)
   }
 
   if (!response.ok || result?.success !== true) {
-    const error = new Error(result?.message || fallbackMessage)
+    const error = new Error(result?.message || 'Unable to change your password.')
     error.status = response.status
     error.code = result?.code
     throw error
@@ -174,53 +148,30 @@ const requestMyAccountSecurityApi = async (accessToken, endpoint, payload, fallb
   return result.data
 }
 
-export const changeAccountPassword = (accessToken, payload) => requestMyAccountSecurityApi(
-  accessToken,
-  'change-password',
-  payload,
-  'Unable to change your password.',
-)
-
-export const requestAccountEmailChange = (accessToken, email) => requestMyAccountSecurityApi(
-  accessToken,
-  'email-change/request',
-  { email },
-  'Unable to send a verification code.',
-  'Email delivery timed out. Check your connection and try again.',
-)
-
-export const confirmAccountEmailChange = (accessToken, code) => requestMyAccountSecurityApi(
-  accessToken,
-  'email-change/confirm',
-  { code },
-  'Unable to verify this email change.',
-)
-
-export const submitFeedback = async (accessToken, { category, message }) => {
-  if (!API_BASE_URL) {
-    throw new Error('Feedback service is not configured.')
-  }
+export const requestEmailChange = async (accessToken, payload) => {
+  if (!API_BASE_URL) throw new Error('Account security service is not configured.')
+  if (!accessToken) throw new Error('Please sign in again to change your email address.')
 
   let response
   let result
-
   try {
-    response = await fetch(`${API_BASE_URL}/users/feedback`, {
+    response = await fetch(`${API_BASE_URL}/users/me/change-email`, {
       method: 'POST',
       headers: createBearerHeaders(accessToken, { 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ category, message }),
+      body: JSON.stringify(payload),
+      cache: 'no-store',
     })
     result = await response.json()
   } catch {
-    throw new Error('Unable to connect to the feedback service.')
+    throw new Error('Unable to connect to the account security service.')
   }
 
   if (!response.ok || result?.success !== true) {
-    const error = new Error(result?.message || 'Unable to send your feedback. Please try again.')
+    const error = new Error(result?.message || 'Unable to change your email address.')
     error.status = response.status
+    error.code = result?.code
     throw error
   }
-
   return result.data
 }
 

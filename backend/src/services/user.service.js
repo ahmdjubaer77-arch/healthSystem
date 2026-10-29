@@ -5,6 +5,7 @@ const HealthProfile = require('../models/HealthProfile')
 const MedicalTimeline = require('../models/MedicalTimeline')
 const MedicalDocument = require('../models/MedicalDocument')
 const healthSharingService = require('./health-sharing.service')
+const emailActionService = require('./email-action.service')
 const BloodRequest = require('../models/BloodRequest')
 const EmergencyRequest = require('../models/EmergencyRequest')
 const Complaint = require('../models/Complaint')
@@ -198,6 +199,10 @@ async function changeMyPassword(userId, input = {}) {
   return { changed: true }
 }
 
+async function changeMyEmail(userId, input = {}) {
+  return emailActionService.requestEmailChange(userId, input)
+}
+
 async function deleteMyAccount(userId, input = {}) {
   const password = typeof input.currentPassword === 'string' ? input.currentPassword : ''
   if (!password) {
@@ -349,6 +354,7 @@ module.exports = {
   getMyProfile,
   updateMyProfile,
   changeMyPassword,
+  changeMyEmail,
   deleteMyAccount,
   uploadProfilePicture,
   deleteProfilePicture,

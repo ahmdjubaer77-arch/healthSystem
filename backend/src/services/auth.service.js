@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
-const otpService = require('./otp.service')
 const { createUserWithPublicId } = require('../utils/public-user-id')
 
 const SALT_ROUNDS = 12
@@ -91,7 +90,6 @@ async function register(input = {}) {
       emailVerificationRequired: true,
     }, User)
 
-    await otpService.requestEmailVerification(user.email, { waitForDelivery: true })
     return registrationUser(user)
   } catch (error) {
     if (error.code === 11000) {
@@ -125,7 +123,7 @@ async function login(input = {}) {
   }
 
   if (user.emailVerificationRequired && !user.emailVerified) {
-    throw createError('Verify your email address before signing in.', 403, 'EMAIL_NOT_VERIFIED')
+    throw createError('Please verify your email address before signing in.', 403, 'EMAIL_NOT_VERIFIED')
   }
 
   if (!process.env.JWT_SECRET) {

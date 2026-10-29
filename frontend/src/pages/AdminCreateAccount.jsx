@@ -72,7 +72,7 @@ function AdminCreateAccount() {
             </span>
             <div>
               <h2 className="text-lg font-semibold text-white">New administrator account</h2>
-              <p className="mt-1 text-sm text-slate-400">The password is hashed before storage.</p>
+              <p className="mt-1 text-sm text-slate-400">The password is hashed before storage. The new administrator must verify their email before signing in.</p>
             </div>
           </div>
 
@@ -132,6 +132,7 @@ function AdminCreateAccount() {
               <p className="mt-3 font-semibold text-white">{createdUser.name}</p>
               <p className="mt-1 break-all text-sm text-slate-300">{createdUser.email}</p>
               <p className="mt-3 text-xs text-slate-400">Role: {createdUser.role}</p>
+              <p className="mt-3 text-sm text-emerald-100">A verification code has been sent to this address.</p>
             </GlassCard>
           )}
         </aside>

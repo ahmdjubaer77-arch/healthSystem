@@ -42,6 +42,7 @@ import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import Settings from './pages/Settings'
 import Notifications from './pages/Notifications'
@@ -90,6 +91,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route
                 path="/admin"
@@ -115,7 +117,6 @@ function App() {
                 <Route path="blood" element={<AdminPage page="Blood requests" />} />
                 <Route path="emergency" element={<AdminPage page="Emergency requests" />} />
                 <Route path="appointments" element={<AdminPage page="Appointments" />} />
-                <Route path="reviews" element={<AdminPage page="Reviews" />} />
                 <Route path="complaints" element={<AdminComplaints />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="audit-logs" element={<AdminAuditLogs />} />

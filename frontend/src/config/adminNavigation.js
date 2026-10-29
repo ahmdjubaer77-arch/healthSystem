@@ -29,7 +29,6 @@ export const adminNavigation = [
   { label: 'Blood donors', path: '/admin/blood/donors', icon: Droplets },
   { label: 'Emergency requests', path: '/admin/emergency', icon: Activity },
   { label: 'Appointments', path: '/admin/appointments', icon: CalendarDays },
-  { label: 'Reviews', path: '/admin/reviews', icon: ClipboardList },
   { label: 'Complaints', path: '/admin/complaints', icon: MessageSquareWarning },
   { label: 'Analytics', path: '/admin/analytics', icon: Activity },
   { label: 'Audit logs', path: '/admin/audit-logs', icon: ClipboardList },

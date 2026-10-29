@@ -1,5 +1,4 @@
 const userService = require('../services/user.service')
-const otpService = require('../services/otp.service')
 
 async function getMyProfile(req, res, next) {
   try {
@@ -40,25 +39,12 @@ async function changeMyPassword(req, res, next) {
   }
 }
 
-async function requestEmailChange(req, res, next) {
+async function changeMyEmail(req, res, next) {
   try {
-    const result = await otpService.requestEmailChange(req.user.userId, req.body?.email)
+    const result = await userService.changeMyEmail(req.user.userId, req.body)
     res.status(200).json({
       success: true,
-      message: 'A verification code has been sent to your new email address.',
-      data: result,
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-async function confirmEmailChange(req, res, next) {
-  try {
-    const result = await otpService.confirmEmailChange(req.user.userId, req.body?.code)
-    res.status(200).json({
-      success: true,
-      message: 'Email address changed successfully.',
+      message: 'Email change confirmation sent.',
       data: result,
     })
   } catch (error) {
@@ -109,8 +95,7 @@ module.exports = {
   getMyProfile,
   updateMyProfile,
   changeMyPassword,
-  requestEmailChange,
-  confirmEmailChange,
+  changeMyEmail,
   deleteMyAccount,
   uploadProfilePicture,
   deleteProfilePicture,
