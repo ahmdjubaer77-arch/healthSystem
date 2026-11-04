@@ -1,45 +1,78 @@
-import { X } from 'lucide-react'
-import { useState } from 'react'
-import GlassCard from '../common/GlassCard'
+import { AlertCircle, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { reportPublicBloodRequest } from '../../services/api'
 import { reportReasons } from '../../data/bloodMockData'
 
-function ReportRequestModal({ isOpen, onClose }) {
-  const [reason, setReason] = useState(reportReasons[0])
+function ReportRequestModal({ isOpen, requestId, accessToken, onClose, onSubmitted }) {
+  const [reason, setReason] = useState(reportReasons[0] || '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return
+    setReason(reportReasons[0] || '')
+    setError('')
+    setSubmitted(false)
+  }, [isOpen, requestId])
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape' && !saving) onClose()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [isOpen, onClose, saving])
 
   if (!isOpen) return null
 
+  const submit = async (event) => {
+    event.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await reportPublicBloodRequest(accessToken, requestId, reason)
+      setSubmitted(true)
+      await onSubmitted?.()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to submit your report.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-      <GlassCard className="w-full max-w-lg p-4 sm:p-5 lg:p-6">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/45 p-4" role="presentation" onMouseDown={(event) => !saving && event.target === event.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="report-request-title" className="w-full max-w-lg rounded-2xl border border-[var(--page-border)] bg-[var(--page-surface)] p-5 text-[var(--page-text)] shadow-xl sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Report</p>
-            <h2 className="mt-2 text-2xl font-bold text-white">Report blood request</h2>
+            <p className="text-sm text-[var(--page-muted)]">Community moderation</p>
+            <h2 id="report-request-title" className="mt-1 text-xl font-semibold text-[var(--page-text)]">Report blood request</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full border border-white/10 bg-slate-950/20 p-2 text-slate-200">
-            <X size={14} />
+          <button type="button" onClick={onClose} aria-label="Close report dialog" className="rounded-lg border border-[var(--page-border)] p-2 text-[var(--page-text)] transition-colors hover:bg-[var(--page-surface-raised)]">
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="mt-5 space-y-4">
-          <label className="block text-sm text-slate-200">
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Reason</span>
-            <select value={reason} onChange={(event) => setReason(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-              {reportReasons.map((item) => (
-                <option key={item} value={item}>{item}</option>
-              ))}
+        <form onSubmit={submit} className="mt-5 space-y-4" aria-busy={saving}>
+          <label className="block text-sm font-medium text-[var(--page-text)]">
+            <span className="mb-2 block">Reason</span>
+            <select value={reason} onChange={(event) => setReason(event.target.value)} className="h-11 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 text-sm text-[var(--page-text)] outline-none focus:border-[var(--page-accent)]">
+              {reportReasons.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
 
-          <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 p-3 text-sm text-amber-100">
-            Frontend-only reporting placeholder. No moderation backend is connected yet.
-          </div>
+          <p className="text-sm leading-6 text-[var(--page-muted)]">Reports are sent to the moderation queue. One report is accepted per signed-in account for each listing.</p>
+          {error && <p role="alert" className="flex items-start gap-2 text-sm text-red-700"><AlertCircle size={16} className="mt-0.5 shrink-0" />{error}</p>}
+          {submitted && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Report sent for review.</p>}
 
-          <button type="button" onClick={onClose} className="inline-flex items-center gap-2 rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/70">
-            Report
-          </button>
-        </div>
-      </GlassCard>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={onClose} disabled={saving} className="rounded-full border border-[var(--page-border)] px-4 py-2.5 text-sm font-medium text-[var(--page-text)] transition-colors hover:bg-[var(--page-surface-raised)] disabled:opacity-60">Close</button>
+            {!submitted && <button type="submit" disabled={saving} className="rounded-full bg-[var(--page-accent-strong)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:cursor-wait disabled:opacity-60">{saving ? 'Submitting…' : 'Submit report'}</button>}
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

@@ -66,8 +66,10 @@ const ChatMessage = memo(function ChatMessage({ item, language, labels, onEmerge
   )
 })
 
-function FloatingAssistant({ accessToken, isHealthPage = false }) {
-  const [isOpen, setIsOpen] = useState(false)
+function FloatingAssistant({ accessToken, isHealthPage = false, isOpen: controlledIsOpen, onOpenChange }) {
+  const [localIsOpen, setLocalIsOpen] = useState(false)
+  const isOpen = controlledIsOpen ?? localIsOpen
+  const setIsOpen = onOpenChange ?? setLocalIsOpen
   const [language, setLanguage] = useState('bn')
   const [draft, setDraft] = useState('')
   const [isSending, setIsSending] = useState(false)

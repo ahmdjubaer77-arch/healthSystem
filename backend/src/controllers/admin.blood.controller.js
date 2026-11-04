@@ -26,4 +26,15 @@ async function reportRequest(req, res, next) {
   } catch (error) { next(error) }
 }
 
-module.exports = { getRequests, getRequest, updateStatus, reportRequest }
+async function updateVerification(req, res, next) {
+  try {
+    const request = await adminBloodService.updateBloodRequestVerification(
+      req.params.id,
+      req.body,
+      getRequestContext(req),
+    )
+    res.status(200).json({ success: true, message: 'Blood request verification updated successfully', data: request })
+  } catch (error) { next(error) }
+}
+
+module.exports = { getRequests, getRequest, updateStatus, reportRequest, updateVerification }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, Filter, MapPin, Pencil, Plus, Search, ShieldCheck, X } from 'lucide-react'
+import { Building2, Filter, MapPin, Pencil, Pill, Plus, Search, ShieldCheck, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAdminPermissions } from '../context/AdminPermissionContext'
 import {
@@ -19,6 +19,7 @@ import EmptyState from '../components/common/EmptyState'
 import StatusBadge from '../components/common/StatusBadge'
 import ConfirmModal from '../components/common/ConfirmModal'
 import Button from '../components/common/Button'
+import PharmacyInventoryManager from '../components/admin/PharmacyInventoryManager'
 
 const STATUSES = ['PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED']
 const PAGE_SIZE = 20
@@ -88,7 +89,7 @@ function PharmacyForm({ form, onChange, onClose, onSubmit, saving, mode }) {
   )
 }
 
-function PharmacyDetails({ pharmacy, loading, canUpdate, canVerify, onClose, onEdit, onAction }) {
+function PharmacyDetails({ pharmacy, loading, canUpdate, canVerify, onClose, onEdit, onAction, onManageInventory }) {
   if (!pharmacy) return null
   const details = [
     ['Contact email', pharmacy.contactEmail],
@@ -120,6 +121,7 @@ function PharmacyDetails({ pharmacy, loading, canUpdate, canVerify, onClose, onE
         {pharmacy.verificationReason && <div className="mt-4 rounded-2xl border border-red-300/15 bg-red-400/[0.06] p-4"><p className="text-[10px] uppercase tracking-widest text-red-300/70">Rejection reason</p><p className="mt-2 text-sm text-slate-300">{pharmacy.verificationReason}</p></div>}
         <div className="mt-6 flex flex-wrap gap-2">
           {canUpdate && <Button size="sm" variant="secondary" icon={false} onClick={onEdit} disabled={loading}><Pencil size={14} /> Edit</Button>}
+          {canUpdate && <Button size="sm" variant="secondary" icon={false} onClick={onManageInventory} disabled={loading}><Pill size={14} /> Manage inventory</Button>}
           {canVerify && pharmacy.verificationStatus !== 'VERIFIED' && pharmacy.verificationStatus !== 'SUSPENDED' && <Button size="sm" icon={false} onClick={() => onAction('verify')} disabled={loading}><ShieldCheck size={14} /> Verify</Button>}
           {canVerify && pharmacy.verificationStatus !== 'REJECTED' && pharmacy.verificationStatus !== 'SUSPENDED' && <Button size="sm" variant="emergency" icon={false} onClick={() => onAction('reject')} disabled={loading}>Reject</Button>}
           {canVerify && (pharmacy.verificationStatus === 'SUSPENDED'
@@ -144,6 +146,7 @@ function AdminPharmacies() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [selectedPharmacy, setSelectedPharmacy] = useState(null)
+  const [inventoryPharmacy, setInventoryPharmacy] = useState(null)
   const [formMode, setFormMode] = useState('')
   const [form, setForm] = useState(EMPTY_FORM)
   const [pendingAction, setPendingAction] = useState(null)
@@ -277,7 +280,17 @@ function AdminPharmacies() {
         onClose={() => setSelectedPharmacy(null)}
         onEdit={openEdit}
         onAction={(action) => setPendingAction({ action })}
+        onManageInventory={() => setInventoryPharmacy(selectedPharmacy)}
       />
+
+      {inventoryPharmacy && (
+        <PharmacyInventoryManager
+          pharmacy={inventoryPharmacy}
+          accessToken={accessToken}
+          canUpdate={canUpdate}
+          onClose={() => setInventoryPharmacy(null)}
+        />
+      )}
 
       {formMode && <PharmacyForm form={form} onChange={(event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))} onClose={() => setFormMode('')} onSubmit={submitForm} saving={saving} mode={formMode} />}
 

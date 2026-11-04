@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Activity, Droplets, FileWarning, Filter, MapPin, Search, ShieldAlert, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { getAdminBloodRequests, getAdminBloodRequest, updateAdminBloodRequestStatus, reportAdminBloodRequest } from '../services/api'
+import { getAdminBloodRequests, getAdminBloodRequest, updateAdminBloodRequestStatus, verifyAdminBloodRequest, reportAdminBloodRequest } from '../services/api'
 import AdminPageContainer from '../components/admin/AdminPageContainer'
 import AdminPageHeader from '../components/admin/AdminPageHeader'
 import RequestReasonModal from '../components/admin/RequestReasonModal'
@@ -16,7 +16,7 @@ import Button from '../components/common/Button'
 const STATUS_OPTIONS = ['PENDING', 'ACTIVE', 'MATCHED', 'FULFILLED', 'EXPIRED', 'CANCELLED']
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 const WORKFLOW_TRANSITIONS = {
-  PENDING: ['ACTIVE', 'CANCELLED'],
+  PENDING: ['CANCELLED'],
   ACTIVE: ['EXPIRED', 'CANCELLED'],
   MATCHED: ['CANCELLED'],
   FULFILLED: [],
@@ -30,7 +30,7 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? 'Not available' : new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
 }
 
-function RequestDetails({ request, loading, nextStatus, onNextStatus, onChangeStatus, onFlag, onClose }) {
+function RequestDetails({ request, loading, nextStatus, onNextStatus, onChangeStatus, onVerify, onReject, onFlag, onClose }) {
   if (!request) return null
   const details = [
     ['Blood group', request.bloodGroup],
@@ -57,6 +57,16 @@ function RequestDetails({ request, loading, nextStatus, onNextStatus, onChangeSt
           {transitions.length ? <div className="mt-4 flex flex-wrap items-center gap-2"><select aria-label="Next workflow status" value={nextStatus} onChange={(event) => onNextStatus(event.target.value)} className="h-10 min-w-40 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none">{transitions.map((status) => <option key={status} value={status}>{status}</option>)}</select><Button size="sm" disabled={loading || !nextStatus} onClick={() => onChangeStatus(nextStatus)}>Update status</Button></div> : <p className="mt-3 text-sm text-slate-500">This request has no available workflow transitions.</p>}
           <p className="mt-3 text-xs leading-5 text-slate-500">Status changes do not match donors or confirm hospitals. Donor matching and fulfillment confirmation are not available here.</p>
         </section>
+        {request.verificationStatus === 'PENDING' && request.status === 'PENDING' && (
+          <section className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="text-sm font-medium text-white">Publication review</div>
+            <p className="mt-2 text-xs leading-5 text-slate-500">A request must be verified before it appears in the public directory.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button size="sm" disabled={loading} onClick={onVerify}>Verify and publish</Button>
+              <Button size="sm" variant="emergency" disabled={loading} onClick={onReject}>Reject request</Button>
+            </div>
+          </section>
+        )}
         <section className="mt-4 rounded-2xl border border-amber-300/10 bg-amber-400/[0.035] p-4"><div className="flex items-center gap-2 text-sm font-medium text-white"><ShieldAlert size={17} className="text-amber-200" /> Moderation</div><p className="mt-2 text-xs leading-5 text-slate-500">Flagging records a review reason without changing the request status.</p><div className="mt-4"><Button size="sm" variant="secondary" disabled={loading} onClick={onFlag}><FileWarning size={15} /> Flag suspicious</Button></div></section>
         <p className="mt-6 text-xs leading-5 text-slate-600">Requester account identifiers and contact details are not shown. Only general location labels are available.</p>
       </aside>
@@ -148,6 +158,25 @@ function AdminBloodRequests() {
     }
   }
 
+  const submitVerification = async (status, verificationReason = '') => {
+    if (!selected) return
+    setLoading(true)
+    setError('')
+    try {
+      const updated = await verifyAdminBloodRequest(accessToken, selected.id, status, verificationReason)
+      setRecords((current) => current.map((record) => record.id === updated.id ? updated : record))
+      setSelected(updated)
+      setPendingAction(null)
+      setReason('')
+      setNextStatus(WORKFLOW_TRANSITIONS[updated.status]?.[0] || '')
+      await load(pagination.page)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const updateFilters = (event) => setFilters((current) => ({ ...current, [event.target.name]: event.target.value }))
   const applyFilters = () => {
     const params = new URLSearchParams()
@@ -182,10 +211,12 @@ function AdminBloodRequests() {
       {!loading && !error && records.length === 0 && <div className="mt-6"><EmptyState icon={Droplets} title="No blood requests found" description="No requests match these filters." /></div>}
       {!loading && !error && records.length > 0 && <GlassCard className="mt-6 overflow-hidden"><div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="border-b border-white/10 bg-white/[0.025] text-xs uppercase tracking-widest text-slate-500"><tr><th className="px-5 py-4">Requester</th><th className="px-5 py-4">Blood group</th><th className="px-5 py-4">Workflow</th><th className="px-5 py-4">Location</th><th className="px-5 py-4">Created</th><th className="px-5 py-4">Action</th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b border-white/[0.06] last:border-0 hover:bg-white/[0.025]"><td className="px-5 py-4"><span className="font-medium text-white">{record.requesterName}</span><span className="mt-1 block text-xs text-slate-500">{record.hospitalName || 'Hospital not specified'}</span></td><td className="px-5 py-4 font-semibold text-white">{record.bloodGroup}</td><td className="px-5 py-4"><StatusBadge status={record.status} />{record.reportReason && <span className="ml-2 text-xs text-amber-200">Flagged</span>}</td><td className="px-5 py-4 text-slate-400">{[record.division, record.district, record.upazila].filter(Boolean).join(' / ') || '-'}</td><td className="px-5 py-4 text-xs text-slate-500">{formatDate(record.createdAt)}</td><td className="px-5 py-4"><Button size="sm" variant="secondary" onClick={() => openDetails(record)}>Review request</Button></td></tr>)}</tbody></table></div><div className="flex items-center justify-between border-t border-white/10 px-5 py-4"><p className="text-xs text-slate-500">{pagination.total} requests</p><div className="flex items-center gap-2"><button type="button" aria-label="Previous page" disabled={pagination.page <= 1 || loading} onClick={() => load(pagination.page - 1)} className="rounded-full border border-white/10 px-3 py-2 text-sm disabled:opacity-40">Previous</button><span className="text-xs text-slate-400">Page {pagination.page} of {pagination.pages}</span><button type="button" aria-label="Next page" disabled={pagination.page >= pagination.pages || loading} onClick={() => load(pagination.page + 1)} className="rounded-full border border-white/10 px-3 py-2 text-sm disabled:opacity-40">Next</button></div></div></GlassCard>}
 
-      <RequestDetails request={selected} loading={loading} nextStatus={nextStatus} onNextStatus={setNextStatus} onChangeStatus={(status) => { setReason(''); setPendingAction({ kind: status === 'CANCELLED' ? 'cancel' : 'status', status }) }} onFlag={() => { setReason(''); setPendingAction({ kind: 'flag' }) }} onClose={() => setSelected(null)} />
+      <RequestDetails request={selected} loading={loading} nextStatus={nextStatus} onNextStatus={setNextStatus} onVerify={() => setPendingAction({ kind: 'verify' })} onReject={() => { setReason(''); setPendingAction({ kind: 'rejectVerification' }) }} onChangeStatus={(status) => { setReason(''); setPendingAction({ kind: status === 'CANCELLED' ? 'cancel' : 'status', status }) }} onFlag={() => { setReason(''); setPendingAction({ kind: 'flag' }) }} onClose={() => setSelected(null)} />
 
       <ConfirmModal open={pendingAction?.kind === 'status'} onClose={() => setPendingAction(null)} onConfirm={() => submitStatus(pendingAction.status)} title="Update request status?" description="This workflow update will be audited. It does not match donors or confirm a hospital." confirmText="Update status" />
+      <ConfirmModal open={pendingAction?.kind === 'verify'} onClose={() => setPendingAction(null)} onConfirm={() => submitVerification('VERIFIED')} title="Verify and publish this request?" description="This request will become visible in the public blood request directory." confirmText="Verify and publish" />
       <RequestReasonModal open={pendingAction?.kind === 'cancel'} title="Cancel fraudulent request" description="Provide the reason this request is being cancelled. The request status will become CANCELLED." value={reason} onChange={setReason} onClose={() => setPendingAction(null)} onConfirm={() => submitStatus('CANCELLED', reason)} loading={loading} confirmText="Cancel request" />
+      <RequestReasonModal open={pendingAction?.kind === 'rejectVerification'} title="Reject blood request" description="A reason is required and will be recorded in the audit log." value={reason} onChange={setReason} onClose={() => setPendingAction(null)} onConfirm={() => submitVerification('REJECTED', reason)} loading={loading} confirmText="Reject request" />
       <RequestReasonModal open={pendingAction?.kind === 'flag'} title="Flag suspicious request" description="Record a moderation note. Flagging does not change the request status." value={reason} onChange={setReason} onClose={() => setPendingAction(null)} onConfirm={submitFlag} loading={loading} confirmText="Flag for review" />
     </AdminPageContainer>
   )

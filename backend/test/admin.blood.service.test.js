@@ -99,6 +99,7 @@ test('blood request active filter, details, moderation, flags, and permissions',
     ipAddress: '127.0.0.1',
   }
   const pending = createRequest()
+  const pendingForVerification = createRequest()
   const active = createRequest({
     requesterName: 'Active Requester',
     status: 'ACTIVE',
@@ -107,7 +108,7 @@ test('blood request active filter, details, moderation, flags, and permissions',
     upazila: 'Tongi',
   })
   const matched = createRequest({ status: 'MATCHED' })
-  requests.push(pending, active, matched)
+  requests.push(pending, pendingForVerification, active, matched)
 
   const activePage = await bloodService.getBloodRequests({ status: 'ACTIVE', page: '1', limit: '1' })
   assert.equal(activePage.pagination.total, 1)
@@ -134,8 +135,10 @@ test('blood request active filter, details, moderation, flags, and permissions',
     bloodService.updateBloodRequestStatus(pending._id.toString(), { status: 'CANCELLED' }, actor),
     { statusCode: 400 },
   )
-  const updated = await bloodService.updateBloodRequestStatus(pending._id.toString(), { status: 'ACTIVE' }, actor)
-  assert.equal(updated.status, 'ACTIVE')
+  await assert.rejects(
+    bloodService.updateBloodRequestStatus(pending._id.toString(), { status: 'ACTIVE' }, actor),
+    { statusCode: 409 },
+  )
   await assert.rejects(
     bloodService.updateBloodRequestStatus(pending._id.toString(), { status: 'MATCHED' }, actor),
     { statusCode: 409 },
@@ -160,9 +163,27 @@ test('blood request active filter, details, moderation, flags, and permissions',
   }, actor)
   assert.equal(cancelled.status, 'CANCELLED')
   assert.equal(cancelled.reportReason, 'Request details need review')
+  const verified = await bloodService.updateBloodRequestVerification(
+    pendingForVerification._id.toString(),
+    { status: 'VERIFIED' },
+    actor,
+  )
+  assert.equal(verified.verificationStatus, 'VERIFIED')
+  assert.equal(verified.status, 'ACTIVE')
+  const rejectedRequest = createRequest()
+  requests.push(rejectedRequest)
+  const rejected = await bloodService.updateBloodRequestVerification(
+    rejectedRequest._id.toString(),
+    { status: 'REJECTED', reason: 'Could not verify the request' },
+    actor,
+  )
+  assert.equal(rejected.verificationStatus, 'REJECTED')
+  assert.equal(rejected.status, 'CANCELLED')
+  assert.equal(rejected.verificationReason, 'Could not verify the request')
   assert.deepEqual(auditEntries.map((entry) => entry.action), [
-    'BLOOD_REQUEST_STATUS_UPDATED',
     'BLOOD_REQUEST_FLAGGED',
     'BLOOD_REQUEST_STATUS_UPDATED',
+    'BLOOD_REQUEST_VERIFICATION_UPDATED',
+    'BLOOD_REQUEST_VERIFICATION_UPDATED',
   ])
 })

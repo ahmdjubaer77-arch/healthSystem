@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { useEffect, useRef, useState } from 'react'
 import {
   ChevronDown,
@@ -23,6 +24,11 @@ import { useTheme } from '../../context/ThemeContext'
 import ProfileAvatar from '../common/ProfileAvatar'
 import ThemeToggle from './ThemeToggle'
 
+function AccountMenuPortal({ isMobile, children }) {
+  if (!isMobile || typeof document === 'undefined') return children
+  return createPortal(children, document.body)
+}
+
 function UserMenu({ user, onLogout, language, onToggleLanguage }) {
   const { t } = useLanguage()
   const { theme } = useTheme()
@@ -35,6 +41,7 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
   const [servicesOpen, setServicesOpen] = useState(false)
   const menuRef = useRef(null)
   const triggerRef = useRef(null)
+  const activeTriggerRef = useRef(null)
   const closeRef = useRef(null)
   const menuItems = [
     { translationKey: 'profile', path: '/profile', icon: UserRound },
@@ -43,12 +50,18 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
     { translationKey: 'settings', path: '/settings', icon: Settings },
     { translationKey: 'privacy', path: '/privacy', icon: ShieldCheck },
   ]
-  const primaryItems = navItems.filter((item) => ['/', '/health', '/emergency'].includes(item.path))
-  const serviceItems = navItems.filter((item) => !primaryItems.includes(item))
+  const workItem = navItems.find((item) => item.path === '/')
+  const resourceItems = navItems.filter((item) => item.path !== '/')
 
   const closeMenu = () => {
     setOpen(false)
-    triggerRef.current?.focus()
+    const activeTrigger = activeTriggerRef.current || triggerRef.current
+    activeTrigger?.focus()
+  }
+
+  const toggleMenu = (event) => {
+    activeTriggerRef.current = event.currentTarget
+    setOpen((value) => !value)
   }
 
   useEffect(() => {
@@ -67,9 +80,7 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
   useEffect(() => {
     if (!open) return undefined
 
-    const previousOverflow = document.body.style.overflow
     if (isMobile) {
-      document.body.style.overflow = 'hidden'
       document.body.classList.add('mobile-account-menu-open')
     }
     if (isMobile) {
@@ -105,7 +116,6 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
       document.body.classList.remove('mobile-account-menu-open')
       document.removeEventListener('keydown', handleKeyDown)
     }
@@ -116,28 +126,30 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggleMenu}
         aria-label={open ? t('closeMenu', 'Close menu') : t('openAccountMenu', 'Open account menu')}
         aria-expanded={open}
         aria-controls="navbar-account-menu"
         aria-haspopup="dialog"
-        className="navbar-profile-button inline-flex h-11 w-11 items-center justify-center gap-1 rounded-full border border-white/20 bg-white/10 text-slate-100 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+        className="navbar-profile-button inline-flex h-11 items-center justify-center gap-1.5 rounded-full text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
       >
         {user ? (
-          <ProfileAvatar user={user} size="sm" />
+          <ProfileAvatar user={user} size="sm" className="navbar-profile-avatar" />
         ) : (
-          <UserRound size={20} aria-hidden="true" />
+          <span className="navbar-profile-avatar navbar-profile-avatar-guest">
+            <UserRound size={17} aria-hidden="true" />
+          </span>
         )}
         <ChevronDown
           size={13}
-          className={`navbar-profile-chevron hidden shrink-0 transition-transform sm:block${open ? ' rotate-180' : ''}`}
+          className="navbar-profile-chevron hidden shrink-0 sm:block"
           aria-hidden="true"
         />
       </button>
-
-      <AnimatePresence>
-        {open && (
-          <>
+      <AccountMenuPortal isMobile={isMobile}>
+        <AnimatePresence>
+          {open && (
+            <>
             <motion.button
               type="button"
               aria-label={t('closeMenu', 'Close menu')}
@@ -154,10 +166,10 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
               role="dialog"
               aria-modal={isMobile}
               aria-label={t('account')}
-              initial={shouldReduceMotion ? false : isMobile ? { opacity: 0, x: '100%' } : { opacity: 0, y: -8 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: -4 }}
               animate={{ opacity: 1, x: 0, y: 0 }}
-              exit={shouldReduceMotion ? { opacity: 0 } : isMobile ? { opacity: 0, x: '100%' } : { opacity: 0, y: -8 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.12 }}
               className={`navbar-account-menu ${isMobile ? 'mobile-account-panel' : 'nav-dropdown'} absolute right-0 top-[calc(100%+0.65rem)] z-[100] rounded-[20px] p-2.5 mobile-theme-${theme}${user ? ' is-authenticated' : ' is-guest'}`}
             >
               <div className="mobile-account-header xl:hidden">
@@ -199,18 +211,18 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
 
               <div className="mobile-account-navigation xl:hidden">
                 <nav aria-label={t('navigation')}>
-                  {primaryItems.filter((item) => item.path !== '/emergency').map((item) => (
+                  {workItem && (
                     <NavLink
-                      key={item.path}
-                      to={item.path}
+                      to={workItem.path}
+                      end
                       onClick={closeMenu}
                       className={({ isActive }) => `mobile-account-link${isActive ? ' is-active' : ''}`}
                     >
-                      <item.icon size={19} aria-hidden="true" />
-                      <span>{t(item.translationKey)}</span>
+                      <workItem.icon size={19} aria-hidden="true" />
+                      <span>{t('home', 'Home')}</span>
                       <ChevronRight size={17} aria-hidden="true" />
                     </NavLink>
-                  ))}
+                  )}
                   <div className={`mobile-account-services${servicesOpen ? ' is-open' : ''}`}>
                     <button
                       type="button"
@@ -229,12 +241,12 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
                     </button>
                     {servicesOpen && (
                       <nav id="mobile-account-service-links" className="mobile-account-service-links" aria-label={t('services', 'Services')}>
-                        {serviceItems.map((item) => (
+                        {resourceItems.map((item) => (
                           <NavLink
                             key={item.path}
                             to={item.path}
                             onClick={closeMenu}
-                            className={({ isActive }) => `mobile-account-service-link${isActive ? ' is-active' : ''}`}
+                            className={({ isActive }) => `mobile-account-service-link${isActive ? ' is-active' : ''}${item.highlight ? ' is-emergency' : ''}`}
                           >
                             <item.icon size={17} aria-hidden="true" />
                             <span>{t(item.translationKey)}</span>
@@ -244,18 +256,6 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
                       </nav>
                     )}
                   </div>
-                  {primaryItems.filter((item) => item.path === '/emergency').map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      onClick={closeMenu}
-                      className={({ isActive }) => `mobile-account-link is-emergency${isActive ? ' is-active' : ''}`}
-                    >
-                      <item.icon size={19} aria-hidden="true" />
-                      <span>{t(item.translationKey)}</span>
-                      <ChevronRight size={17} aria-hidden="true" />
-                    </NavLink>
-                  ))}
                 </nav>
 
                 <div className="mobile-account-divider" />
@@ -356,9 +356,10 @@ function UserMenu({ user, onLogout, language, onToggleLanguage }) {
                 </div>
               )}
             </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+            </>
+          )}
+        </AnimatePresence>
+      </AccountMenuPortal>
     </div>
   )
 }

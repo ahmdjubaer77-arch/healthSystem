@@ -1,70 +1,62 @@
-import { Clock3, Droplets, MapPin, ShieldAlert, UserRound } from 'lucide-react'
+import { Clock3, Droplets, MapPin, Phone, ShieldAlert } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
+
+function formatDate(value) {
+  if (!value) return 'Not provided'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Not provided' : date.toLocaleString()
+}
 
 function BloodRequestDetails({ request, onReport }) {
   if (!request) return null
+  const location = [request.upazila, request.district, request.division].filter(Boolean).join(', ')
 
   return (
     <div className="space-y-4">
-      <GlassCard className="p-4 sm:p-5 lg:p-6">
-        <div className="flex items-start justify-between gap-3">
+      <GlassCard className="p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Request details</p>
-            <h2 className="mt-2 text-3xl font-bold text-white">{request.bloodGroup} Blood Request</h2>
+            <p className="text-sm text-[var(--page-muted)]">Verified request</p>
+            <h2 className="mt-1 text-2xl font-semibold text-[var(--page-text)]">{request.bloodGroup} blood support</h2>
           </div>
-          <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 text-sm text-cyan-100">{request.requestStatus}</div>
+          <span className="rounded-full border border-emerald-700/20 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-800">Verified</span>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Units required</div>
-            <div className="mt-2 text-white">{request.unitsRequired}</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Hospital</div>
-            <div className="mt-2 text-white">{request.hospital}</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Urgency</div>
-            <div className="mt-2 text-white">{request.urgency}</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Division</div>
-            <div className="mt-2 text-white">{request.division}</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">District</div>
-            <div className="mt-2 text-white">{request.district}</div>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Upazila</div>
-            <div className="mt-2 text-white">{request.upazila}</div>
-          </div>
-        </div>
+        <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            ['Quantity', `${request.quantity} ${request.unit}`],
+            ['Hospital or care location', request.hospitalName || 'Not provided'],
+            ['Urgency', request.urgency || 'Standard'],
+            ['Division', request.division || 'Not provided'],
+            ['District', request.district || 'Not provided'],
+            ['Upazila', request.upazila || 'Not provided'],
+            ['Required by', formatDate(request.requiredAt)],
+            ['Listed', formatDate(request.createdAt)],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-xl bg-[var(--page-surface-sunken)] p-3">
+              <dt className="text-xs text-[var(--page-muted)]">{label}</dt>
+              <dd className="mt-1 text-sm font-medium text-[var(--page-text)]">{value}</dd>
+            </div>
+          ))}
+        </dl>
       </GlassCard>
 
-      <GlassCard className="p-4 sm:p-5 lg:p-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-3 text-sm text-slate-200">
-            <div className="flex items-center gap-2"><Droplets size={14} className="text-red-200" /> Required date/time: {request.requiredDateTime}</div>
-            <div className="flex items-center gap-2"><Clock3 size={14} className="text-cyan-200" /> Expires in: {request.expiresIn}</div>
-            <div className="flex items-center gap-2"><MapPin size={14} className="text-cyan-200" /> Location: {request.upazila}</div>
-            <div className="flex items-center gap-2"><UserRound size={14} className="text-cyan-200" /> Contact person: {request.contactPerson}</div>
+      <GlassCard className="p-5 sm:p-6">
+        <h3 className="text-base font-semibold text-[var(--page-text)]">Contact and safety</h3>
+        <p className="mt-2 text-sm leading-6 text-[var(--page-muted)]">Only contact the requester if they explicitly consented to share their number. Confirm details directly before making arrangements.</p>
+        {request.contactPhone && (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="text-sm text-[var(--page-text)]">{request.contactPerson || 'Request contact'} · {request.contactPhone}</span>
+            <a href={`tel:${request.contactPhone}`} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--page-border)] px-3 py-2 text-sm font-medium text-[var(--page-text)] hover:bg-[var(--page-surface-sunken)]"><Phone size={15} aria-hidden="true" />Call</a>
           </div>
-          <div className="rounded-[24px] border border-white/10 bg-slate-950/20 p-4 text-sm text-slate-200">
-            <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Verification status</div>
-            <div className="mt-2 text-white">{request.verificationStatus}</div>
-            <div className="mt-5 text-[10px] uppercase tracking-[0.14em] text-slate-400">Notes</div>
-            <p className="mt-2 text-white">{request.notes}</p>
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-3">
-          <button type="button" onClick={onReport} className="inline-flex items-center gap-2 rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/70">
-            <ShieldAlert size={14} />
-            Report request
+        )}
+        {location && <p className="mt-4 flex items-center gap-2 text-sm text-[var(--page-muted)]"><MapPin size={15} aria-hidden="true" />{location}</p>}
+        <p className="mt-4 flex items-center gap-2 text-sm text-[var(--page-muted)]"><Clock3 size={15} aria-hidden="true" />Request review is not donor matching or a guarantee of fulfillment.</p>
+        {onReport && (
+          <button type="button" onClick={onReport} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--page-border)] px-3 py-2 text-sm font-medium text-[var(--page-text)] hover:bg-[var(--page-surface-sunken)]">
+            <ShieldAlert size={15} aria-hidden="true" /> Report listing
           </button>
-        </div>
+        )}
       </GlassCard>
     </div>
   )

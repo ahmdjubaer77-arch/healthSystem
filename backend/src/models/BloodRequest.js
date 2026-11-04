@@ -5,9 +5,15 @@ const BLOOD_REQUEST_STATUSES = ['PENDING', 'ACTIVE', 'MATCHED', 'FULFILLED', 'EX
 const bloodRequestSchema = new mongoose.Schema({
   requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   requesterName: { type: String, required: true, trim: true, maxlength: 100 },
+  requiredAt: { type: Date },
   bloodGroup: { type: String, required: true, trim: true, maxlength: 10 },
   quantity: { type: Number, required: true, min: 1 },
   unit: { type: String, required: true, trim: true, maxlength: 30 },
+  urgency: { type: String, enum: ['STANDARD', 'URGENT', 'CRITICAL'], default: 'STANDARD' },
+  contactPerson: { type: String, trim: true, maxlength: 100, default: '' },
+  contactPhone: { type: String, trim: true, maxlength: 30, default: '' },
+  contactPhoneConsent: { type: Boolean, default: false },
+  requestNotes: { type: String, trim: true, maxlength: 500, default: '' },
   hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   hospitalName: { type: String, trim: true, maxlength: 160 },
   division: { type: String, trim: true, maxlength: 100 },
@@ -19,6 +25,11 @@ const bloodRequestSchema = new mongoose.Schema({
   verificationReason: { type: String, trim: true, maxlength: 500, default: '' },
   reportReason: { type: String, trim: true, maxlength: 500, default: '' },
   reportedAt: Date,
+  reports: [{
+    reporterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    reason: { type: String, required: true, trim: true, maxlength: 500 },
+    createdAt: { type: Date, default: Date.now },
+  }],
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true })
 

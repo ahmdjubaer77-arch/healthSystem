@@ -6,6 +6,7 @@ import {
   Droplets,
   HeartPulse,
   House,
+  Pill,
   ShieldAlert,
   Stethoscope,
   UserRound,
@@ -20,6 +21,7 @@ export const navItems = [
   { translationKey: 'blood', path: '/blood', icon: Droplets },
   { translationKey: 'hospitals', path: '/hospitals', icon: Building2 },
   { translationKey: 'doctors', path: '/doctors', icon: Stethoscope },
+  { translationKey: 'medicines', path: '/medicines', icon: Pill },
   { translationKey: 'providers', path: '/providers', icon: BriefcaseMedical },
   { translationKey: 'emergencyTransport', path: '/ambulances', icon: Ambulance },
 ]
@@ -31,6 +33,7 @@ export const mobileNavItems = [
   { translationKey: 'blood', path: '/blood' },
   { translationKey: 'hospitals', path: '/hospitals' },
   { translationKey: 'doctors', path: '/doctors' },
+  { translationKey: 'medicines', path: '/medicines' },
   { translationKey: 'providers', path: '/providers' },
   { translationKey: 'profile', path: '/profile' },
 ]

@@ -1,56 +1,54 @@
-import { Clock3, Droplets, MapPin, ShieldAlert, UserRound } from 'lucide-react'
+import { Clock3, Droplets, MapPin, Phone } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import GlassCard from '../common/GlassCard'
 
-const statusStyles = {
-  Pending: 'border-amber-400/30 bg-amber-500/15 text-amber-200',
-  Active: 'border-cyan-400/30 bg-cyan-500/15 text-cyan-200',
-  Matched: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-200',
-  Fulfilled: 'border-emerald-400/30 bg-emerald-500/15 text-emerald-200',
-  Expired: 'border-red-400/30 bg-red-500/15 text-red-200',
-  Cancelled: 'border-slate-400/30 bg-slate-500/10 text-slate-200',
+const urgencyLabels = {
+  STANDARD: 'Standard',
+  URGENT: 'Urgent',
+  CRITICAL: 'Critical',
+}
+
+function formatDate(value) {
+  if (!value) return 'Time not provided'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? 'Time not provided' : date.toLocaleString()
 }
 
 function BloodRequestCard({ request }) {
   return (
-    <GlassCard className="h-full p-4 sm:p-5">
+    <GlassCard className="flex h-full flex-col p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.16em] text-cyan-100/80">Blood group</div>
-          <div className="mt-2 text-2xl font-bold text-white">{request.bloodGroup}</div>
+          <p className="text-sm text-[var(--page-muted)]">Blood group</p>
+          <h3 className="mt-1 text-2xl font-semibold text-[var(--page-text)]">{request.bloodGroup}</h3>
         </div>
-        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${statusStyles[request.requestStatus] || statusStyles.Pending}`}>
-          {request.requestStatus}
+        <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
+          request.urgency === 'CRITICAL'
+            ? 'border-red-700/20 bg-red-50 text-red-800'
+            : request.urgency === 'URGENT'
+              ? 'border-amber-700/20 bg-amber-50 text-amber-800'
+              : 'border-[var(--page-border)] bg-[var(--page-surface-sunken)] text-[var(--page-muted)]'
+        }`}>
+          {urgencyLabels[request.urgency] || urgencyLabels.STANDARD}
         </span>
       </div>
 
-      <div className="mt-5 space-y-3 text-sm text-slate-200">
-        <div className="flex items-center gap-2"><Droplets size={14} className="text-red-200" /> {request.unitsRequired} units required</div>
-        <div className="flex items-center gap-2"><MapPin size={14} className="text-cyan-200" /> {request.hospital}</div>
-        <div className="flex items-center gap-2"><UserRound size={14} className="text-cyan-200" /> {request.contactPerson}</div>
-        <div className="flex items-center gap-2"><Clock3 size={14} className="text-cyan-200" /> {request.requiredDateTime}</div>
+      <div className="mt-5 space-y-3 text-sm text-[var(--page-text)]">
+        <p className="flex items-center gap-2"><Droplets size={15} className="text-[var(--page-emergency)]" aria-hidden="true" />{request.quantity} {request.unit} required</p>
+        <p className="flex items-center gap-2"><MapPin size={15} className="text-[var(--page-accent)]" aria-hidden="true" />{[request.hospitalName, request.upazila, request.district].filter(Boolean).join(' · ') || 'Location not listed'}</p>
+        <p className="flex items-center gap-2"><Clock3 size={15} className="text-[var(--page-muted)]" aria-hidden="true" />Required by {formatDate(request.requiredAt)}</p>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Urgency</div>
-          <div className="mt-2 text-sm font-medium text-white">{request.urgency}</div>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-slate-950/20 p-3">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-slate-400">Verification</div>
-          <div className="mt-2 text-sm font-medium text-white">{request.verificationStatus}</div>
-        </div>
+      <div className="mt-auto pt-5">
+        {request.contactPhone && (
+          <a href={`tel:${request.contactPhone}`} className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--page-border)] px-3 py-2 text-sm font-medium text-[var(--page-text)] transition-colors hover:bg-[var(--page-surface-sunken)]">
+            <Phone size={15} aria-hidden="true" /> Contact requester
+          </a>
+        )}
+        <Link to={`/blood/requests/${request.id}`} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-[var(--page-text)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#343437] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--page-accent)] focus-visible:ring-offset-2">
+          View request
+        </Link>
       </div>
-
-      <div className="mt-5 flex items-center justify-between gap-2 text-xs text-slate-300">
-        <span>Created: {request.createdAt}</span>
-        <span>Expires: {request.expiresIn}</span>
-      </div>
-
-      <Link to={`/blood/requests/${request.id}`} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-300/30 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70">
-        <ShieldAlert size={14} />
-        View Details
-      </Link>
     </GlassCard>
   )
 }

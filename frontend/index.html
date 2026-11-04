@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#071c2d" />
+    <meta name="theme-color" content="#f7f7f5" />
     <script>
       try {
         const theme = localStorage.getItem('bdh_theme')
         document.documentElement.dataset.theme = theme === 'light' || theme === 'dark'
           ? theme
-          : window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+          : 'light'
       } catch {
-        // The application falls back to the system preference when storage is unavailable.
+        document.documentElement.dataset.theme = 'light'
       }
     </script>
     <meta

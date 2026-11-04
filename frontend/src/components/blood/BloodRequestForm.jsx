@@ -1,151 +1,171 @@
-import { AlertTriangle, Droplets } from 'lucide-react'
+import { AlertCircle, Droplets } from 'lucide-react'
 import { useState } from 'react'
+import { createBloodRequest } from '../../services/api'
 import GlassCard from '../common/GlassCard'
-import { bloodGroups } from '../../data/bloodMockData'
+import Button from '../common/Button'
 
-const defaultForm = {
-  patientName: '',
-  bloodGroup: 'A+',
-  unitsRequired: '2',
-  hospital: '',
-  division: 'Barishal',
-  district: 'Barishal District',
-  upazila: 'Barishal Sadar',
-  requiredDateTime: '',
-  urgency: 'Urgent',
-  contactPerson: '',
-  contactNumber: '',
-  notes: '',
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+const inputClass = 'h-11 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 text-sm text-[var(--page-text)] outline-none focus:border-[var(--page-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--page-accent)_16%,transparent)]'
+const labelClass = 'block text-sm font-medium text-[var(--page-text)]'
+
+function localDateTimeValue(date) {
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  return localDate.toISOString().slice(0, 16)
 }
 
-function BloodRequestForm() {
-  const [form, setForm] = useState(defaultForm)
+function createInitialForm(user) {
+  return {
+    bloodGroup: user?.bloodGroup || 'A+',
+    quantity: '1',
+    hospitalName: '',
+    division: user?.location?.division || '',
+    district: user?.location?.district || '',
+    upazila: user?.location?.upazila || '',
+    requiredAt: localDateTimeValue(new Date()),
+    urgency: 'URGENT',
+    contactPerson: user?.name || '',
+    contactPhone: user?.phone || '',
+    contactPhoneConsent: false,
+    notes: '',
+  }
+}
+
+function BloodRequestForm({ accessToken, user, onCreated }) {
+  const [form, setForm] = useState(() => createInitialForm(user))
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
-  const handleChange = (field, value) => {
+  const update = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
+    setSubmitted(false)
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    const requiredFields = [form.patientName, form.hospital, form.contactPerson, form.contactNumber, form.requiredDateTime]
-    if (requiredFields.some((item) => !item.trim())) {
-      setSubmitted(false)
-      return
+    setSaving(true)
+    setError('')
+    setSubmitted(false)
+    try {
+      const request = await createBloodRequest(accessToken, {
+        bloodGroup: form.bloodGroup,
+        quantity: Number(form.quantity),
+        hospitalName: form.hospitalName,
+        division: form.division,
+        district: form.district,
+        upazila: form.upazila,
+        requiredAt: new Date(form.requiredAt).toISOString(),
+        urgency: form.urgency,
+        contactPhoneConsent: form.contactPhoneConsent,
+        ...(form.contactPhoneConsent ? {
+          contactPerson: form.contactPerson,
+          contactPhone: form.contactPhone,
+        } : {}),
+        notes: form.notes,
+      })
+      setSubmitted(true)
+      await onCreated?.(request)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setSaving(false)
     }
-    setSubmitted(true)
   }
 
   return (
     <GlassCard className="p-4 sm:p-5 lg:p-6">
       <div className="mb-5 flex items-center gap-3">
-        <div className="rounded-2xl border border-red-300/20 bg-red-500/10 p-2 text-red-100">
-          <Droplets size={18} />
-        </div>
+        <span className="rounded-xl bg-[var(--page-surface-sunken)] p-2 text-[var(--page-emergency)]">
+          <Droplets size={18} aria-hidden="true" />
+        </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Create request</p>
-          <h2 className="mt-2 text-2xl font-bold text-white">Create a blood request</h2>
+          <p className="text-sm text-[var(--page-muted)]">Blood support</p>
+          <h2 className="mt-1 text-xl font-semibold text-[var(--page-text)]">Submit a blood request</h2>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Patient name</span>
-          <input value={form.patientName} onChange={(event) => handleChange('patientName', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" placeholder="Sample Patient" />
-        </label>
-
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Blood group</span>
-          <select value={form.bloodGroup} onChange={(event) => handleChange('bloodGroup', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            {bloodGroups.map((group) => (
-              <option key={group} value={group}>{group}</option>
-            ))}
+        <label className={labelClass}>
+          <span className="mb-2 block">Blood group</span>
+          <select value={form.bloodGroup} onChange={(event) => update('bloodGroup', event.target.value)} className={inputClass}>
+            {bloodGroups.map((group) => <option key={group} value={group}>{group}</option>)}
           </select>
         </label>
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Required units</span>
-          <select value={form.unitsRequired} onChange={(event) => handleChange('unitsRequired', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            {[1, 2, 3, 4].map((unit) => (
-              <option key={unit} value={unit}>{unit}</option>
-            ))}
+        <label className={labelClass}>
+          <span className="mb-2 block">Units required</span>
+          <select value={form.quantity} onChange={(event) => update('quantity', event.target.value)} className={inputClass}>
+            {Array.from({ length: 20 }, (_, index) => index + 1).map((quantity) => <option key={quantity} value={quantity}>{quantity}</option>)}
           </select>
         </label>
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Hospital</span>
-          <input value={form.hospital} onChange={(event) => handleChange('hospital', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" placeholder="Barishal General Hospital" />
+        <label className={`${labelClass} md:col-span-2`}>
+          <span className="mb-2 block">Hospital or care location</span>
+          <input required maxLength={160} value={form.hospitalName} onChange={(event) => update('hospitalName', event.target.value)} className={inputClass} autoComplete="organization" />
         </label>
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Division</span>
-          <select value={form.division} onChange={(event) => handleChange('division', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            <option>Barishal</option>
-            <option>Dhaka</option>
-            <option>Chattogram</option>
+        {[
+          ['division', 'Division', 100],
+          ['district', 'District', 120],
+          ['upazila', 'Upazila', 120],
+        ].map(([field, label, maxLength]) => (
+          <label key={field} className={labelClass}>
+            <span className="mb-2 block">{label}</span>
+            <input maxLength={maxLength} value={form[field]} onChange={(event) => update(field, event.target.value)} className={inputClass} />
+          </label>
+        ))}
+
+        <label className={labelClass}>
+          <span className="mb-2 block">Required by</span>
+          <input required type="datetime-local" value={form.requiredAt} min={localDateTimeValue(new Date())} onChange={(event) => update('requiredAt', event.target.value)} className={inputClass} />
+        </label>
+
+        <label className={labelClass}>
+          <span className="mb-2 block">Urgency</span>
+          <select value={form.urgency} onChange={(event) => update('urgency', event.target.value)} className={inputClass}>
+            <option value="STANDARD">Standard</option>
+            <option value="URGENT">Urgent</option>
+            <option value="CRITICAL">Critical</option>
           </select>
         </label>
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">District</span>
-          <select value={form.district} onChange={(event) => handleChange('district', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            <option>Barishal District</option>
-            <option>Dhaka District</option>
-            <option>Chattogram District</option>
-          </select>
+        <fieldset className="space-y-3 rounded-xl border border-[var(--page-border)] p-4 md:col-span-2">
+          <legend className="px-1 text-sm font-medium text-[var(--page-text)]">Contact privacy</legend>
+          <label className="flex items-start gap-3 text-sm text-[var(--page-text)]">
+            <input type="checkbox" checked={form.contactPhoneConsent} onChange={(event) => update('contactPhoneConsent', event.target.checked)} className="mt-1 accent-[var(--page-accent)]" />
+            <span>Display my contact details publicly if this request is verified.</span>
+          </label>
+          {form.contactPhoneConsent && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className={labelClass}>
+                <span className="mb-2 block">Contact person</span>
+                <input required maxLength={100} value={form.contactPerson} onChange={(event) => update('contactPerson', event.target.value)} className={inputClass} autoComplete="name" />
+              </label>
+              <label className={labelClass}>
+                <span className="mb-2 block">Contact phone</span>
+                <input required type="tel" maxLength={30} value={form.contactPhone} onChange={(event) => update('contactPhone', event.target.value)} className={inputClass} autoComplete="tel" />
+              </label>
+            </div>
+          )}
+          <p className="text-xs leading-5 text-[var(--page-muted)]">Contact details stay private unless you explicitly opt in. Requests are not publicly listed until reviewed by an administrator.</p>
+        </fieldset>
+
+        <label className={`${labelClass} md:col-span-2`}>
+          <span className="mb-2 block">Additional logistics (optional)</span>
+          <textarea maxLength={500} rows={3} value={form.notes} onChange={(event) => update('notes', event.target.value)} className="w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 py-2.5 text-sm text-[var(--page-text)] outline-none focus:border-[var(--page-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--page-accent)_16%,transparent)]" />
+          <span className="mt-1 block text-xs text-[var(--page-muted)]">Do not include medical history or other sensitive health information.</span>
         </label>
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Upazila</span>
-          <select value={form.upazila} onChange={(event) => handleChange('upazila', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            <option>Barishal Sadar</option>
-            <option>Gournadi</option>
-            <option>Uttara</option>
-          </select>
-        </label>
+        {error && <p role="alert" className="flex items-start gap-2 text-sm text-red-700 md:col-span-2"><AlertCircle size={16} className="mt-0.5 shrink-0" />{error}</p>}
+        {submitted && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900 md:col-span-2">Your request was submitted for verification. It will be publicly listed only after an administrator approves it.</p>}
 
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Required date/time</span>
-          <input type="datetime-local" value={form.requiredDateTime} onChange={(event) => handleChange('requiredDateTime', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" />
-        </label>
-
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Urgency</span>
-          <select value={form.urgency} onChange={(event) => handleChange('urgency', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
-            <option>Normal</option>
-            <option>Urgent</option>
-            <option>Critical</option>
-          </select>
-        </label>
-
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Contact person</span>
-          <input value={form.contactPerson} onChange={(event) => handleChange('contactPerson', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" placeholder="Demo Contact" />
-        </label>
-
-        <label className="block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Contact number</span>
-          <input value={form.contactNumber} onChange={(event) => handleChange('contactNumber', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" placeholder="+8801XXXXXXXXX" />
-        </label>
-
-        <label className="md:col-span-2 block text-sm text-slate-200">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Additional notes</span>
-          <textarea value={form.notes} onChange={(event) => handleChange('notes', event.target.value)} rows="4" className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70" placeholder="Optional information" />
-        </label>
-
-        <div className="md:col-span-2 flex items-center justify-between gap-3">
-          <button type="submit" className="inline-flex items-center gap-2 rounded-2xl border border-red-300/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/70">
-            <AlertTriangle size={14} />
-            Submit blood request
-          </button>
+        <div className="md:col-span-2">
+          <Button type="submit" disabled={saving}>
+            <Droplets size={15} aria-hidden="true" />
+            {saving ? 'Submitting…' : 'Submit for verification'}
+          </Button>
         </div>
       </form>
-
-      {submitted && (
-        <div className="mt-5 rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-          Your blood request was created as a demo.
-        </div>
-      )}
     </GlassCard>
   )
 }

@@ -14,7 +14,7 @@ function getInitialTheme() {
   }
   const theme = savedTheme === 'light' || savedTheme === 'dark'
     ? savedTheme
-    : window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    : 'light'
 
   document.documentElement.dataset.theme = theme
   return theme
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }) {
     }
     document.querySelector('meta[name="theme-color"]')?.setAttribute(
       'content',
-      theme === 'light' ? '#f2f8fc' : '#071c2d',
+      theme === 'light' ? '#f7f7f5' : '#000000',
     )
   }, [theme])
 

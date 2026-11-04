@@ -1,4 +1,4 @@
-import { Ambulance, Building2, Droplets, Info } from 'lucide-react'
+import { Ambulance, ArrowRight, Building2, Droplets, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../context/LanguageContext'
 
@@ -16,9 +16,13 @@ function EmergencyPanel() {
     <section className="home-emergency-section" aria-labelledby="home-emergency-title">
       <div className="home-emergency-heading">
         <div>
-          <p className="home-section-kicker">{t('homeEmergencyKicker', 'Urgent care directory')}</p>
-          <h2 id="home-emergency-title" className="home-section-title">{t('homeEmergencyTitle', 'Find emergency-related services')}</h2>
+          <p className="home-section-kicker">{t('homeEmergencyKicker', 'Emergency information')}</p>
+          <h2 id="home-emergency-title" className="home-section-title">{t('homeEmergencyTitle', 'Need emergency care?')}</h2>
+          <p className="home-emergency-description">{t('homeEmergencyDescription', 'Find hospital, ambulance and blood support listings in one place.')}</p>
         </div>
+        <Link to="/emergency" className="home-emergency-action">
+          {t('homeEmergencyInfo', 'Emergency information')} <ArrowRight size={15} aria-hidden="true" />
+        </Link>
       </div>
 
       <div className="home-emergency-links">

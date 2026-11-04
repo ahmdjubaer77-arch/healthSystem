@@ -41,6 +41,8 @@ test('public frontend API endpoints are registered exactly once under /api', () 
     '/api/doctors',
     '/api/hospitals',
     '/api/blood/donors',
+    '/api/blood/requests',
+    '/api/medicines',
     '/api/locations/options',
   ]) {
     assert.equal(findMountedGetRoutes(path).length, 1, `${path} should have one public GET route`)

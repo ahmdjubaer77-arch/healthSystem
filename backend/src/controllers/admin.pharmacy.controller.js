@@ -1,4 +1,5 @@
 const adminPharmacyService = require('../services/admin.pharmacy.service')
+const medicineService = require('../services/medicine.service')
 
 function getRequestContext(req) {
   return {
@@ -71,6 +72,55 @@ async function updatePharmacyVerification(req, res, next) {
   }
 }
 
+async function getMedicines(req, res, next) {
+  try {
+    const medicines = await medicineService.listPharmacyInventory(req.params.id)
+    res.status(200).json({ success: true, message: 'Pharmacy inventory retrieved successfully', data: medicines })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function createMedicine(req, res, next) {
+  try {
+    const medicine = await medicineService.createPharmacyMedicine(
+      req.params.id,
+      req.body,
+      getRequestContext(req),
+    )
+    res.status(201).json({ success: true, message: 'Medicine added to pharmacy inventory', data: medicine })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function updateMedicine(req, res, next) {
+  try {
+    const medicine = await medicineService.updatePharmacyMedicine(
+      req.params.id,
+      req.params.medicineId,
+      req.body,
+      getRequestContext(req),
+    )
+    res.status(200).json({ success: true, message: 'Medicine availability updated', data: medicine })
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function deleteMedicine(req, res, next) {
+  try {
+    const result = await medicineService.deletePharmacyMedicine(
+      req.params.id,
+      req.params.medicineId,
+      getRequestContext(req),
+    )
+    res.status(200).json({ success: true, message: 'Medicine removed from pharmacy inventory', data: result })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   getPharmacies,
   getPharmacy,
@@ -78,4 +128,8 @@ module.exports = {
   updatePharmacy,
   updatePharmacyStatus,
   updatePharmacyVerification,
+  getMedicines,
+  createMedicine,
+  updateMedicine,
+  deleteMedicine,
 }

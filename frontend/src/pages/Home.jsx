@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, MapPin, Stethoscope } from 'lucide-react'
+import { ArrowRight, MapPin, Pill, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Hero from '../components/home/Hero'
 import QuickSearch from '../components/home/QuickSearch'
+import ServiceGrid from '../components/home/ServiceGrid'
 import EmergencyPanel from '../components/home/EmergencyPanel'
 import NearbyHospitals from '../components/home/NearbyHospitals'
 import BloodFinderPreview from '../components/home/BloodFinderPreview'
@@ -35,10 +36,29 @@ function Home() {
   }, [doctorReloadKey])
 
   return (
-    <div className="home-page space-y-8 pb-6">
+    <div className="home-page pb-6">
       <Hero />
       <QuickSearch />
+      <ServiceGrid />
       <EmergencyPanel />
+
+      <div className="home-discovery-grid">
+        <NearbyHospitals />
+        <Link to="/medicines" className="home-medicine-card">
+          <span className="home-medicine-icon" aria-hidden="true"><Pill size={22} /></span>
+          <span className="home-section-kicker">{t('medicines', 'Medicines')}</span>
+          <span className="home-medicine-title">{t('homeMedicineTitle', 'Check medicine availability')}</span>
+          <span className="home-medicine-copy">
+            {t('homeMedicineDescription', 'Search pharmacy listings by medicine and location. Contact the pharmacy to confirm current availability.')}
+          </span>
+          <span className="home-medicine-link">{t('homeBrowseMedicines', 'Find medicines')} <ArrowRight size={15} aria-hidden="true" /></span>
+        </Link>
+      </div>
+
+      <div className="home-promo-grid">
+        <HealthProfileCTA />
+        <BloodFinderPreview />
+      </div>
 
       <section className="home-featured-section" aria-labelledby="featured-doctors-title">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -91,9 +111,6 @@ function Home() {
         </div> : <p className="home-empty-copy">{t('homeNoDoctors', 'No available doctors are listed right now.')}</p>}
       </section>
 
-      <NearbyHospitals />
-      <BloodFinderPreview />
-      <HealthProfileCTA />
       <TrustSection />
     </div>
   )

@@ -1,29 +1,45 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BloodRequestDetailsComponent from '../components/blood/BloodRequestDetails'
 import ReportRequestModal from '../components/blood/ReportRequestModal'
 import SectionHeader from '../components/common/SectionHeader'
-import { bloodRequests } from '../data/bloodMockData'
+import LoadingState from '../components/common/LoadingState'
+import ErrorState from '../components/common/ErrorState'
+import { useAuth } from '../context/AuthContext'
+import { getPublicBloodRequest } from '../services/api'
 
 function BloodRequestDetailsPage() {
   const { id } = useParams()
-  const request = useMemo(
-    () => bloodRequests.find((entry) => entry.id === id || entry.id === Number(id)),
-    [id],
-  )
+  const { accessToken } = useAuth()
+  const [request, setRequest] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [isReportOpen, setIsReportOpen] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    getPublicBloodRequest(id)
+      .then((result) => { if (active) setRequest(result) })
+      .catch((requestError) => { if (active) setError(requestError.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [id, reloadKey])
+
+  if (loading) return <LoadingState label="Loading verified blood request" className="mt-6" />
+  if (error) return (
+    <div className="space-y-5 py-4">
+      <ErrorState title="Blood request unavailable" message={error} onRetry={() => setReloadKey((key) => key + 1)} />
+      <Link to="/blood/request" className="inline-flex min-h-10 items-center rounded-lg border border-[var(--page-border)] px-4 py-2 text-sm font-medium text-[var(--page-text)]">Back to blood requests</Link>
+    </div>
+  )
   if (!request) {
     return (
-      <div className="space-y-6 py-4">
-        <SectionHeader
-          kicker="Request details"
-          title="Blood request not found"
-          subtitle="This demo request is not available in the mock dataset."
-        />
-        <Link to="/blood/request" className="inline-flex items-center rounded-2xl border border-cyan-300/30 bg-cyan-400/10 px-4 py-3 text-sm font-semibold text-cyan-100">
-          Back to blood requests
-        </Link>
+      <div className="space-y-5 py-4">
+        <SectionHeader kicker="Request details" title="Blood request not found" subtitle="This request is not available in the verified public directory." />
+        <Link to="/blood/request" className="inline-flex min-h-10 items-center rounded-lg border border-[var(--page-border)] px-4 py-2 text-sm font-medium text-[var(--page-text)]">Back to blood requests</Link>
       </div>
     )
   }
@@ -31,13 +47,18 @@ function BloodRequestDetailsPage() {
   return (
     <div className="space-y-6 py-4">
       <SectionHeader
-        kicker="Request details"
-        title={`${request.bloodGroup} blood support request`}
-        subtitle={`${request.hospital} • ${request.division} • ${request.district} • ${request.upazila}`}
+        kicker="Verified public listing"
+        title={`${request.bloodGroup} blood request`}
+        subtitle={[request.hospitalName, request.division, request.district, request.upazila].filter(Boolean).join(' · ')}
       />
-
-      <BloodRequestDetailsComponent request={request} onReport={() => setIsReportOpen(true)} />
-      <ReportRequestModal isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} />
+      <BloodRequestDetailsComponent request={request} onReport={accessToken ? () => setIsReportOpen(true) : null} />
+      <ReportRequestModal
+        requestId={request.id}
+        accessToken={accessToken}
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        onSubmitted={() => setReloadKey((key) => key + 1)}
+      />
     </div>
   )
 }

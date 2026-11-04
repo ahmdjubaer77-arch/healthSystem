@@ -341,21 +341,21 @@ function Profile() {
   }
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="profile-dashboard min-w-0 space-y-6 py-4">
       <SectionHeader
         kicker="Account"
         title="Profile dashboard"
         subtitle="Account details and health information associated with your profile."
       />
 
-      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <GlassCard className="p-5 sm:p-6">
-          <div className="flex items-center gap-4">
-            <ProfileAvatar user={user} size="xl" previewUrl={profilePicturePreview} />
-            <div>
+      <div className="profile-dashboard-grid grid min-w-0 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <GlassCard className="profile-account-card min-w-0 p-5 sm:p-6">
+          <div className="profile-account-header flex min-w-0 items-center gap-4">
+            <ProfileAvatar user={user} size="xl" previewUrl={profilePicturePreview} className="profile-account-avatar" />
+            <div className="profile-account-identity min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Account</p>
-              <h2 className="mt-2 text-2xl font-bold text-white">{user?.name || 'Account user'}</h2>
-              <p className="mt-1 text-sm text-slate-300">{user?.email || 'Email unavailable'}</p>
+              <h2 className="profile-account-name mt-2 text-2xl font-bold text-white">{user?.name || 'Account user'}</h2>
+              <p className="profile-account-email mt-1 text-sm text-slate-300">{user?.email || 'Email unavailable'}</p>
               <button
                 type="button"
                 onClick={() => setEmailDialog(true)}
@@ -366,7 +366,7 @@ function Profile() {
             </div>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="profile-photo-actions mt-5 flex flex-wrap gap-3">
             <input
               ref={fileInputRef}
               type="file"
@@ -378,7 +378,7 @@ function Profile() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={profilePictureLoading}
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-400/15 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/25 disabled:cursor-not-allowed disabled:opacity-50"
+              className="profile-action-button inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-400/15 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/25 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ImagePlus size={14} />
               {profilePictureLoading ? 'Updating...' : 'Upload photo'}
@@ -387,7 +387,7 @@ function Profile() {
               type="button"
               onClick={handleProfilePictureDelete}
               disabled={!user?.profilePicture || profilePictureLoading}
-              className="inline-flex items-center gap-2 rounded-full border border-red-300/35 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+              className="profile-action-button inline-flex items-center gap-2 rounded-full border border-red-300/35 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Trash2 size={14} />
               Delete photo
@@ -400,18 +400,18 @@ function Profile() {
             </p>
           )}
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/5 p-3 sm:col-span-2">
+          <div className="profile-account-facts mt-5 grid min-w-0 gap-3 sm:grid-cols-2">
+            <div className="profile-public-id rounded-2xl border border-cyan-300/20 bg-cyan-400/5 p-3 sm:col-span-2">
               <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Custom User ID</p>
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <p className="font-mono text-lg font-semibold tracking-wider text-cyan-100">
+              <div className="profile-public-id-row mt-2 flex min-w-0 flex-wrap items-center justify-between gap-3">
+                <p className="profile-public-id-value min-w-0 font-mono text-lg font-semibold tracking-wider text-cyan-100">
                   {user?.publicUserId || 'ID unavailable — refresh your profile'}
                 </p>
                 <button
                   type="button"
                   onClick={copyPublicUserId}
                   disabled={!user?.publicUserId}
-                  className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="profile-copy-button inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Copy Custom User ID"
                 >
                   {publicIdCopied ? <Check size={14} /> : <Copy size={14} />}
@@ -443,7 +443,7 @@ function Profile() {
             type="button"
             onClick={startEditing}
             disabled={healthProfileLoading || profileSaving}
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+            className="profile-action-button mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Edit3 size={14} />
             Edit Profile
@@ -480,8 +480,8 @@ function Profile() {
           </div>
         </GlassCard>
 
-        <div className="space-y-6">
-          <GlassCard className="p-5 sm:p-6">
+        <div className="profile-detail-stack min-w-0 space-y-6">
+          <GlassCard className="min-w-0 p-5 sm:p-6">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-2 text-cyan-100">
                 <UserRound size={18} />
@@ -512,7 +512,7 @@ function Profile() {
             </div>
           </GlassCard>
 
-          <GlassCard className="p-5 sm:p-6">
+          <GlassCard className="min-w-0 p-5 sm:p-6">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-2 text-cyan-100">
                 <HeartPulse size={18} />
@@ -576,7 +576,7 @@ function Profile() {
             </div>
           </GlassCard>
 
-          <GlassCard className="p-5 sm:p-6">
+          <GlassCard className="min-w-0 p-5 sm:p-6">
             <div className="flex items-center gap-3">
               <div className="rounded-2xl border border-cyan-300/20 bg-cyan-400/10 p-2 text-cyan-100">
                 <ShieldCheck size={18} />

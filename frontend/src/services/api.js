@@ -291,6 +291,60 @@ const requestAdminApi = async (path, options = {}) => {
   return result.data
 }
 
+const requestApi = async (path, options = {}) => {
+  if (!API_BASE_URL) throw new Error('API service is not configured.')
+
+  const { accessToken, ...requestOptions } = options
+  let response
+  let result
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...requestOptions,
+      headers: {
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...(requestOptions.body ? { 'Content-Type': 'application/json' } : {}),
+        ...requestOptions.headers,
+      },
+      cache: 'no-store',
+    })
+    result = await response.json()
+  } catch {
+    throw new Error('Unable to connect to the healthcare service.')
+  }
+
+  if (!response.ok || result?.success !== true) {
+    const error = new Error(result?.message || 'The healthcare request failed.')
+    error.status = response.status
+    throw error
+  }
+  return result.data
+}
+
+export const getPublicBloodRequests = async (query = {}) => {
+  const params = new URLSearchParams()
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) params.set(key, String(value))
+  })
+  return requestApi(`/blood/requests?${params.toString()}`)
+}
+
+export const getPublicBloodRequest = async (id) => requestApi(
+  `/blood/requests/${encodeURIComponent(id)}`,
+)
+
+export const createBloodRequest = async (accessToken, payload) => requestApi('/blood/requests', {
+  accessToken,
+  method: 'POST',
+  body: JSON.stringify(payload),
+})
+
+export const getMyBloodRequests = async (accessToken) => requestApi('/blood/requests/mine', { accessToken })
+
+export const reportPublicBloodRequest = async (accessToken, id, reason) => requestApi(
+  `/blood/requests/${encodeURIComponent(id)}/report`,
+  { accessToken, method: 'POST', body: JSON.stringify({ reason }) },
+)
+
 export const getAdminUsers = async (accessToken, query = {}) => {
   const params = new URLSearchParams()
   Object.entries(query).forEach(([key, value]) => {
@@ -499,6 +553,26 @@ export const updateAdminPharmacyVerification = async (accessToken, id, status, r
   body: JSON.stringify({ status, reason }),
 })
 
+export const getAdminPharmacyMedicines = async (accessToken, pharmacyId) => requestAdminApi(
+  `/pharmacies/${encodeURIComponent(pharmacyId)}/medicines`,
+  { accessToken },
+)
+
+export const createAdminPharmacyMedicine = async (accessToken, pharmacyId, payload) => requestAdminApi(
+  `/pharmacies/${encodeURIComponent(pharmacyId)}/medicines`,
+  { accessToken, method: 'POST', body: JSON.stringify(payload) },
+)
+
+export const updateAdminPharmacyMedicine = async (accessToken, pharmacyId, medicineId, payload) => requestAdminApi(
+  `/pharmacies/${encodeURIComponent(pharmacyId)}/medicines/${encodeURIComponent(medicineId)}`,
+  { accessToken, method: 'PATCH', body: JSON.stringify(payload) },
+)
+
+export const deleteAdminPharmacyMedicine = async (accessToken, pharmacyId, medicineId) => requestAdminApi(
+  `/pharmacies/${encodeURIComponent(pharmacyId)}/medicines/${encodeURIComponent(medicineId)}`,
+  { accessToken, method: 'DELETE' },
+)
+
 export const getAdminVerificationSummary = async (accessToken) => requestAdminApi('/verification/summary', { accessToken })
 
 export const getAdminAuditLogs = async (accessToken, query = {}) => {
@@ -561,6 +635,11 @@ export const updateAdminBloodDonorStatus = async (accessToken, id, status) => re
 })
 
 export const updateAdminBloodRequestStatus = async (accessToken, id, status, reason = '') => requestAdminApi(`/blood/requests/${id}/status`, { accessToken, method: 'PATCH', body: JSON.stringify({ status, reason }) })
+
+export const verifyAdminBloodRequest = async (accessToken, id, status, reason = '') => requestAdminApi(
+  `/blood/requests/${encodeURIComponent(id)}/verification`,
+  { accessToken, method: 'PATCH', body: JSON.stringify({ status, reason }) },
+)
 
 export const reportAdminBloodRequest = async (accessToken, id, reason) => requestAdminApi(`/blood/requests/${id}/report`, { accessToken, method: 'POST', body: JSON.stringify({ reason }) })
 
@@ -1360,6 +1439,14 @@ export const getDoctorById = async (id) => {
   }
   if (!response.ok || result?.success !== true) throw new Error(result?.message || 'Unable to load doctor details.')
   return result.data?.doctor ?? null
+}
+
+export const searchMedicineAvailability = async (query = {}) => {
+  const params = new URLSearchParams()
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) params.set(key, String(value))
+  })
+  return requestApi(`/medicines?${params.toString()}`)
 }
 
 export const getProviders = async () => providerDirectory

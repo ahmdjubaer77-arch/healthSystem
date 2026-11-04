@@ -1,14 +1,14 @@
-import * as icons from 'lucide-react'
+import { Building2, ClipboardList, FileText, Pill, ShieldCheck, Stethoscope } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
 
-function HealthSummary({ summaryItems }) {
-  const IconMap = icons
+const iconMap = { Building2, ClipboardList, FileText, Pill, ShieldCheck, Stethoscope }
 
+function HealthSummary({ summaryItems }) {
   return (
     <section>
       <div className="grid min-w-0 grid-cols-2 gap-3 sm:gap-4 2xl:grid-cols-3">
         {summaryItems.map((item) => {
-          const Icon = IconMap[item.icon] || IconMap.FileText
+          const Icon = iconMap[item.icon] || FileText
 
           return (
             <a

@@ -27,7 +27,7 @@ function BloodFinderPreview() {
   }, [reloadKey])
 
   return (
-    <section className="home-blood-section pt-4">
+    <section className="home-blood-section">
       <div className="mb-6">
         <p className="home-section-kicker">{t('homeBloodKicker', 'Blood support')}</p>
         <h2 className="home-section-title">{t('homeBloodTitle', 'Find a blood donor')}</h2>

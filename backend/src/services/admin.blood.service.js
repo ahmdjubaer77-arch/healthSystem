@@ -53,6 +53,8 @@ function sanitizeRequest(request) {
     bloodGroup: request.bloodGroup,
     quantity: request.quantity,
     unit: request.unit,
+    requiredAt: request.requiredAt || null,
+    urgency: request.urgency || 'STANDARD',
     hospitalName: request.hospitalName || null,
     division: request.division || null,
     district: request.district || null,
@@ -125,6 +127,9 @@ async function updateBloodRequestStatus(id, input, actor) {
   }
   const request = await BloodRequest.findById(id)
   if (!request) throw createError('Blood request not found', 404)
+  if (status === 'ACTIVE' && request.verificationStatus !== 'VERIFIED') {
+    throw createError('Verify the blood request before publishing it', 409)
+  }
   if (request.status === status) throw createError('Blood request already has this status', 409)
   if (!WORKFLOW_TRANSITIONS[request.status].has(status)) throw createError('Invalid blood request status transition', 409)
   if (status === 'CANCELLED' && !String(reason || '').trim()) throw createError('A cancellation reason is required', 400)
@@ -155,4 +160,49 @@ async function reportBloodRequest(id, input, actor) {
   return sanitizeRequest(request)
 }
 
-module.exports = { getBloodRequests, getBloodRequestById, updateBloodRequestStatus, reportBloodRequest }
+async function updateBloodRequestVerification(id, input, actor) {
+  requirePermission(actor, 'blood.moderate')
+  validateObjectInput(input, new Set(['status', 'reason']), 'Blood request verification')
+  const { status, reason } = input
+  if (!mongoose.isValidObjectId(id)) throw createError('Blood request not found', 404)
+  if (!['VERIFIED', 'REJECTED'].includes(status)) throw createError('Invalid verification status', 400)
+  if (reason !== undefined && typeof reason !== 'string') throw createError('Reason must be a string', 400)
+  const normalizedReason = typeof reason === 'string' ? reason.trim() : ''
+  if (status === 'REJECTED' && !normalizedReason) throw createError('A rejection reason is required', 400)
+  if (normalizedReason.length > 500) throw createError('Reason is too long', 400)
+
+  const request = await BloodRequest.findById(id)
+  if (!request) throw createError('Blood request not found', 404)
+  if (request.verificationStatus !== 'PENDING' || request.status !== 'PENDING') {
+    throw createError('Only pending blood requests can be verified', 409)
+  }
+
+  request.verificationStatus = status
+  request.verificationReason = status === 'REJECTED' ? normalizedReason : ''
+  request.status = status === 'VERIFIED' ? 'ACTIVE' : 'CANCELLED'
+  await request.save()
+  await AdminAuditLog.create({
+    actorId: actor.userId,
+    actorRole: actor.role,
+    action: 'BLOOD_REQUEST_VERIFICATION_UPDATED',
+    entityType: 'BloodRequest',
+    entityId: request._id,
+    result: 'SUCCESS',
+    details: {
+      verificationStatus: status,
+      workflowStatus: request.status,
+      reason: status === 'REJECTED' ? normalizedReason : null,
+    },
+    ipAddress: actor.ipAddress || null,
+    userAgent: actor.userAgent || null,
+  })
+  return sanitizeRequest(request)
+}
+
+module.exports = {
+  getBloodRequests,
+  getBloodRequestById,
+  updateBloodRequestStatus,
+  reportBloodRequest,
+  updateBloodRequestVerification,
+}
