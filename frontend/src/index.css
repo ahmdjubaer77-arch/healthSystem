@@ -8689,6 +8689,10 @@ body {
 }
 
 @media (max-width: 560px) {
+  html:has(.home-page) {
+    scrollbar-gutter: auto;
+  }
+
   html:has(.home-page),
   body:has(.home-page),
   #root:has(.home-page),
