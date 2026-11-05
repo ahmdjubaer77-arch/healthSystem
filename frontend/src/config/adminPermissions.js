@@ -25,6 +25,7 @@ export const adminActionPermissions = {
   users: {
     update: 'users.update',
     suspend: 'users.suspend',
+    delete: 'users.delete',
   },
   providers: {
     verify: 'providers.verify',

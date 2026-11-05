@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Activity, ChevronLeft, ChevronRight, Filter, MapPin, Search, UserRound, Users } from 'lucide-react'
+import { Activity, ChevronLeft, ChevronRight, Filter, MapPin, Search, Trash2, UserRound, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { getAdminUsers, getAdminUser, updateAdminUserStatus, updateAdminUserRole } from '../services/api'
+import { getAdminUsers, getAdminUser, updateAdminUserStatus, updateAdminUserRole, deleteAdminUser } from '../services/api'
+import { useAdminPermissions } from '../context/AdminPermissionContext'
 import AdminPageContainer from '../components/admin/AdminPageContainer'
 import AdminPageHeader from '../components/admin/AdminPageHeader'
 import GlassCard from '../components/common/GlassCard'
@@ -57,6 +58,8 @@ function Detail({ label, value }) {
 
 function AdminUsers() {
   const { accessToken, user } = useAuth()
+  const currentUserId = user?.id
+  const { hasPermission } = useAdminPermissions()
   const roleOptions = user?.role === 'SUPER_ADMIN' ? ROLES : ROLES.filter((role) => role !== 'SUPER_ADMIN')
   const [users, setUsers] = useState([])
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 })
@@ -64,6 +67,7 @@ function AdminUsers() {
   const [error, setError] = useState('')
   const [detailsUser, setDetailsUser] = useState(null)
   const [action, setAction] = useState(null)
+  const [deletingUser, setDeletingUser] = useState(false)
   const [filters, setFilters] = useState({ search: '', role: '', status: '', location: '', createdFrom: '', createdTo: '' })
 
   const loadUsers = async (page = pagination.page) => {
@@ -117,7 +121,25 @@ function AdminUsers() {
     }
   }
 
+  const submitUserDelete = async () => {
+    if (!action || action.type !== 'delete' || deletingUser) return
+    setDeletingUser(true)
+    setError('')
+    try {
+      await deleteAdminUser(accessToken, action.id)
+      const nextPage = users.length === 1 && pagination.page > 1 ? pagination.page - 1 : pagination.page
+      setAction(null)
+      setDetailsUser(null)
+      await loadUsers(nextPage)
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setDeletingUser(false)
+    }
+  }
+
   const openStatusAction = (user) => setAction({ id: user.id, type: 'status', status: user.accountStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE', user })
+  const openDeleteAction = (targetUser) => setAction({ id: targetUser.id, type: 'delete', user: targetUser })
 
   const openDetails = async (user) => {
     setLoading(true)
@@ -155,7 +177,7 @@ function AdminUsers() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead className="border-b border-white/10 bg-white/[0.025] text-xs uppercase tracking-widest text-slate-500"><tr><th className="px-5 py-4">User</th><th className="px-5 py-4">Role</th><th className="px-5 py-4">Status</th><th className="px-5 py-4">Location</th><th className="px-5 py-4">Created</th><th className="px-5 py-4">Actions</th></tr></thead>
-              <tbody>{users.map((user) => <tr key={user.id} className="border-b border-white/[0.06] last:border-0 hover:bg-white/[0.025]"><td className="px-5 py-4"><button type="button" onClick={() => openDetails(user)} className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-200"><UserRound size={17} /></span><span><span className="block font-medium text-white">{user.name}</span><span className="block text-xs text-slate-500">{user.email}</span></span></button></td><td className="px-5 py-4"><span className="text-slate-300">{user.role}</span></td><td className="px-5 py-4"><StatusBadge status={user.accountStatus} /></td><td className="px-5 py-4 text-slate-400">{user.location ? [user.location.division, user.location.district].filter(Boolean).join(' / ') : '—'}</td><td className="px-5 py-4 text-slate-400">{formatDate(user.createdAt)}</td><td className="px-5 py-4"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => openDetails(user)}>Details</Button><Button size="sm" variant={user.accountStatus === 'ACTIVE' ? 'emergency' : 'primary'} onClick={() => openStatusAction(user)}>{user.accountStatus === 'ACTIVE' ? 'Suspend' : 'Activate'}</Button>{user.role !== 'SUPER_ADMIN' && <select value="" onChange={(event) => { if (event.target.value) setAction({ id: user.id, type: 'role', role: event.target.value, user }) }} className="h-9 rounded-full border border-white/10 bg-slate-900 px-3 text-xs text-white"><option value="">Change role</option>{roleOptions.map((role) => <option key={role}>{role}</option>)}</select>}</div></td></tr>)}</tbody>
+              <tbody>{users.map((user) => <tr key={user.id} className="border-b border-white/[0.06] last:border-0 hover:bg-white/[0.025]"><td className="px-5 py-4"><button type="button" onClick={() => openDetails(user)} className="flex items-center gap-3 text-left"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-400/10 text-cyan-200"><UserRound size={17} /></span><span><span className="block font-medium text-white">{user.name}</span><span className="block text-xs text-slate-500">{user.email}</span></span></button></td><td className="px-5 py-4"><span className="text-slate-300">{user.role}</span></td><td className="px-5 py-4"><StatusBadge status={user.accountStatus} /></td><td className="px-5 py-4 text-slate-400">{user.location ? [user.location.division, user.location.district].filter(Boolean).join(' / ') : '—'}</td><td className="px-5 py-4 text-slate-400">{formatDate(user.createdAt)}</td><td className="px-5 py-4"><div className="flex flex-wrap gap-2"><Button size="sm" variant="secondary" onClick={() => openDetails(user)}>Details</Button><Button size="sm" variant={user.accountStatus === 'ACTIVE' ? 'emergency' : 'primary'} onClick={() => openStatusAction(user)}>{user.accountStatus === 'ACTIVE' ? 'Suspend' : 'Activate'}</Button>{user.role !== 'SUPER_ADMIN' && <select value="" onChange={(event) => { if (event.target.value) setAction({ id: user.id, type: 'role', role: event.target.value, user }) }} className="h-9 rounded-full border border-white/10 bg-slate-900 px-3 text-xs text-white"><option value="">Change role</option>{roleOptions.map((role) => <option key={role}>{role}</option>)}</select>}{hasPermission('users.delete') && user.id !== currentUserId && !['ADMIN', 'SUPER_ADMIN'].includes(user.role) && <button type="button" onClick={() => openDeleteAction(user)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-red-300/25 bg-red-500/10 px-3 text-xs font-medium text-red-100 transition hover:bg-red-500/20"><Trash2 size={13} />Delete</button>}</div></td></tr>)}</tbody>
             </table>
           </div>
           <div className="flex items-center justify-between border-t border-white/10 px-5 py-4"><p className="text-xs text-slate-500">{pagination.total} accounts</p><div className="flex items-center gap-2"><button disabled={pagination.page <= 1 || loading} onClick={() => loadUsers(pagination.page - 1)} className="rounded-full border border-white/10 p-2 disabled:opacity-40"><ChevronLeft size={16} /></button><span className="text-xs text-slate-400">Page {pagination.page} of {pagination.pages}</span><button disabled={pagination.page >= pagination.pages || loading} onClick={() => loadUsers(pagination.page + 1)} className="rounded-full border border-white/10 p-2 disabled:opacity-40"><ChevronRight size={16} /></button></div></div>
@@ -163,7 +185,7 @@ function AdminUsers() {
       )}
 
       {detailsUser && <UserDetails user={detailsUser} onClose={() => setDetailsUser(null)} />}
-      <ConfirmModal open={Boolean(action)} onClose={() => setAction(null)} onConfirm={action?.type === 'status' ? submitStatusChange : submitRoleChange} title={action?.type === 'status' ? `${action.status === 'SUSPENDED' ? 'Suspend' : 'Activate'} account?` : 'Change user role?'} description={action?.type === 'status' ? `This will ${action.status === 'SUSPENDED' ? 'suspend' : 'activate'} ${action.user?.name}. This action will be audited.` : `Change ${action?.user?.name} from ${action?.user?.role} to ${action?.role}. The backend will enforce role permissions.`} confirmText={action?.type === 'status' ? 'Confirm status change' : 'Save role'} />
+      <ConfirmModal open={Boolean(action)} onClose={() => { if (!deletingUser) setAction(null) }} onConfirm={action?.type === 'status' ? submitStatusChange : action?.type === 'delete' ? submitUserDelete : submitRoleChange} title={action?.type === 'status' ? `${action.status === 'SUSPENDED' ? 'Suspend' : 'Activate'} account?` : action?.type === 'delete' ? 'Permanently delete this user?' : 'Change user role?'} description={action?.type === 'status' ? `This will ${action.status === 'SUSPENDED' ? 'suspend' : 'activate'} ${action.user?.name}. This action will be audited.` : action?.type === 'delete' ? `This permanently deletes ${action.user?.name}'s account, health records, documents, and their requests. This cannot be undone. Administrator accounts are protected.` : `Change ${action?.user?.name} from ${action?.user?.role} to ${action?.role}. The backend will enforce role permissions.`} confirmText={action?.type === 'status' ? 'Confirm status change' : action?.type === 'delete' ? (deletingUser ? 'Deleting…' : 'Delete user permanently') : 'Save role'} busy={deletingUser} />
       <div className="mt-4 flex items-center gap-2 text-xs text-slate-500"><Activity size={14} /> Every sensitive action is recorded in the administrator audit log.</div>
     </AdminPageContainer>
   )

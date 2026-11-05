@@ -27,6 +27,7 @@ router.get('/users', adminPermission('users.read'), adminUserController.getUsers
 router.get('/users/:id', adminPermission('users.read'), adminUserController.getUser)
 router.patch('/users/:id/status', adminPermission('users.suspend'), adminUserController.updateUserStatus)
 router.patch('/users/:id/role', adminPermission('users.update'), adminUserController.updateUserRole)
+router.delete('/users/:id', adminPermission('users.delete'), adminUserController.deleteUser)
 router.get('/providers', adminPermissionAny('providers.read', 'providers.verify'), adminProviderController.getProviders)
 router.get('/providers/:id', adminPermissionAny('providers.read', 'providers.verify'), adminProviderController.getProvider)
 router.patch('/providers/:id/status', adminPermissionAny('providers.verify', 'providers.reject', 'providers.suspend'), adminProviderController.updateProviderStatus)

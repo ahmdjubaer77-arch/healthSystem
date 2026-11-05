@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const User = require('../models/User')
 const AdminAuditLog = require('../models/AdminAuditLog')
+const userService = require('./user.service')
 
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPER_ADMIN'])
 const USER_ROLES = new Set([
@@ -168,9 +169,38 @@ async function updateUserRole(id, role, actor) {
   return buildUserResponse(user)
 }
 
+async function deleteUser(id, actor) {
+  if (!mongoose.isValidObjectId(id)) throw createError('User not found', 404)
+
+  const user = await User.findById(id)
+  if (!user) throw createError('User not found', 404)
+  if (user._id.toString() === actor.userId) {
+    throw createError('Administrators cannot delete their own account here', 400)
+  }
+  if (ADMIN_ROLES.has(user.role)) {
+    throw createError('Administrator accounts cannot be deleted from user management', 403)
+  }
+
+  await userService.deleteUserAccountData(user._id, actor.userId, user)
+  await AdminAuditLog.create({
+    actorId: actor.userId,
+    actorRole: actor.role,
+    action: 'user.delete',
+    entityType: 'User',
+    entityId: user._id,
+    targetUser: user._id,
+    details: { role: user.role, accountStatus: user.accountStatus },
+    ipAddress: actor.ipAddress || null,
+    userAgent: actor.userAgent || null,
+  })
+
+  return { deleted: true, id: user._id.toString() }
+}
+
 module.exports = {
   getUsers,
   getUserById,
   updateUserStatus,
   updateUserRole,
+  deleteUser,
 }

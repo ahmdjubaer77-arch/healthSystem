@@ -53,4 +53,13 @@ async function updateUserRole(req, res, next) {
   }
 }
 
-module.exports = { getUsers, getUser, updateUserStatus, updateUserRole }
+async function deleteUser(req, res, next) {
+  try {
+    const result = await adminUserService.deleteUser(req.params.id, getRequestContext(req))
+    res.status(200).json({ success: true, message: 'User and associated account data deleted successfully', data: result })
+  } catch (error) {
+    next(error)
+  }
+}
+
+module.exports = { getUsers, getUser, updateUserStatus, updateUserRole, deleteUser }

@@ -542,7 +542,7 @@ async function listAccessHistory(ownerUserId, query = {}) {
   }
 }
 
-async function revokeSharesForAccountDeletion(userId) {
+async function revokeSharesForAccountDeletion(userId, actorUserId = userId) {
   const shares = await HealthShare.find({
     $or: [{ ownerUserId: userId }, { recipientUserId: userId }],
     status: 'ACTIVE',
@@ -557,7 +557,7 @@ async function revokeSharesForAccountDeletion(userId) {
   await HealthAccessEvent.insertMany(shares.map((share) => ({
     shareId: share._id,
     ownerUserId: share.ownerUserId,
-    actorUserId: userId,
+    actorUserId,
     action: 'SHARE_REVOKED',
     resourceType: 'SHARE',
     resourceId: share._id,

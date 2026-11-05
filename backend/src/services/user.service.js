@@ -1,6 +1,7 @@
 const { Readable } = require('stream')
 const bcrypt = require('bcrypt')
 const User = require('../models/User')
+const EmailActionToken = require('../models/EmailActionToken')
 const HealthProfile = require('../models/HealthProfile')
 const MedicalTimeline = require('../models/MedicalTimeline')
 const MedicalDocument = require('../models/MedicalDocument')
@@ -203,21 +204,9 @@ async function changeMyEmail(userId, input = {}) {
   return emailActionService.requestEmailChange(userId, input)
 }
 
-async function deleteMyAccount(userId, input = {}) {
-  const password = typeof input.currentPassword === 'string' ? input.currentPassword : ''
-  if (!password) {
-    throw createError('Your current password is required to delete your account', 400)
-  }
-
-  const user = await User.findById(userId).select('+passwordHash')
-  if (!user) {
-    throw createError('User profile not found', 404)
-  }
-
-  if (!(await bcrypt.compare(password, user.passwordHash))) {
-    throw createError('Your current password is incorrect', 401)
-  }
-
+async function deleteUserAccountData(userId, actorUserId = userId, existingUser = null) {
+  const user = existingUser || await User.findById(userId)
+  if (!user) throw createError('User profile not found', 404)
   const documents = await MedicalDocument.find({ user: userId })
   const media = [
     ...documents.map((document) => ({
@@ -249,7 +238,7 @@ async function deleteMyAccount(userId, input = {}) {
     }
   }
 
-  await healthSharingService.revokeSharesForAccountDeletion(userId)
+  await healthSharingService.revokeSharesForAccountDeletion(userId, actorUserId)
   await Promise.all([
     HealthProfile.deleteOne({ user: userId }),
     MedicalTimeline.deleteMany({ user: userId }),
@@ -283,9 +272,28 @@ async function deleteMyAccount(userId, input = {}) {
       },
     ),
   ])
+  await EmailActionToken.deleteMany({ userId })
   await user.deleteOne()
 
   return { deleted: true }
+}
+
+async function deleteMyAccount(userId, input = {}) {
+  const password = typeof input.currentPassword === 'string' ? input.currentPassword : ''
+  if (!password) {
+    throw createError('Your current password is required to delete your account', 400)
+  }
+
+  const user = await User.findById(userId).select('+passwordHash')
+  if (!user) {
+    throw createError('User profile not found', 404)
+  }
+
+  if (!(await bcrypt.compare(password, user.passwordHash))) {
+    throw createError('Your current password is incorrect', 401)
+  }
+
+  return deleteUserAccountData(userId, userId, user)
 }
 
 function uploadProfilePictureToCloudinary(userId, file) {
@@ -356,6 +364,7 @@ module.exports = {
   changeMyPassword,
   changeMyEmail,
   deleteMyAccount,
+  deleteUserAccountData,
   uploadProfilePicture,
   deleteProfilePicture,
 }

@@ -10,6 +10,7 @@ const HealthShare = require('../src/models/HealthShare')
 const BloodRequest = require('../src/models/BloodRequest')
 const EmergencyRequest = require('../src/models/EmergencyRequest')
 const Complaint = require('../src/models/Complaint')
+const EmailActionToken = require('../src/models/EmailActionToken')
 const userService = require('../src/services/user.service')
 const userRoutes = require('../src/routes/user.routes')
 const aiRoutes = require('../src/routes/ai.routes')
@@ -30,6 +31,7 @@ const originalMethods = {
   emergencyUpdateMany: EmergencyRequest.updateMany,
   complaintDeleteMany: Complaint.deleteMany,
   complaintUpdateMany: Complaint.updateMany,
+  emailActionTokenDeleteMany: EmailActionToken.deleteMany,
 }
 
 after(() => {
@@ -44,6 +46,7 @@ after(() => {
   EmergencyRequest.updateMany = originalMethods.emergencyUpdateMany
   Complaint.deleteMany = originalMethods.complaintDeleteMany
   Complaint.updateMany = originalMethods.complaintUpdateMany
+  EmailActionToken.deleteMany = originalMethods.emailActionTokenDeleteMany
   HealthShare.find = originalMethods.shareFind
 })
 
@@ -181,6 +184,7 @@ test('account deletion removes only records owned or assigned to the authenticat
   EmergencyRequest.updateMany = async (filter) => { updatedFilters.push(filter) }
   Complaint.deleteMany = noOp
   Complaint.updateMany = async (filter) => { updatedFilters.push(filter) }
+  EmailActionToken.deleteMany = noOp
 
   const result = await userService.deleteMyAccount(userId, { currentPassword: 'correct-password' })
 

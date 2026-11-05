@@ -2,6 +2,7 @@ const ADMIN_PERMISSIONS = [
   'users.read',
   'users.update',
   'users.suspend',
+  'users.delete',
   'providers.read',
   'providers.verify',
   'providers.reject',

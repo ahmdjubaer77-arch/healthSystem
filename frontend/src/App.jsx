@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import FloatingAssistant from './components/chat/FloatingAssistant'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
@@ -55,23 +55,31 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 function App() {
   const location = useLocation()
-  const { accessToken } = useAuth()
-  const isAdminRoute = location.pathname.startsWith('/admin')
+  const { accessToken, user } = useAuth()
+  const isAdminUser = ['ADMIN', 'SUPER_ADMIN'].includes(user?.role)
+  const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/')
   const [isAssistantOpen, setIsAssistantOpen] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [location.pathname])
 
+  if (isAdminUser && !isAdminRoute && location.pathname !== '/register') {
+    return <Navigate to="/admin" replace />
+  }
+
   return (
     <ErrorBoundary>
       <div className="app-shell min-h-screen text-[var(--text-soft)]">
-        <div className="mx-auto max-w-[1440px] px-3 pb-10 pt-3 sm:px-5 lg:px-8">
+        <div className={`mx-auto max-w-[1440px] px-3 pb-10 pt-3 sm:px-5 lg:px-8 ${isAdminRoute ? 'admin-app-frame' : ''}`}>
           {!isAdminRoute && <Navbar />}
-          <main className="mt-5">
+          <main className={isAdminRoute ? 'admin-route-host' : 'mt-5'}>
             <Suspense fallback={<div className="app-route-loading" role="status">Loading page…</div>}>
               <Routes location={location}>
-                <Route path="/" element={<Home />} />
+                <Route
+                  path="/"
+                  element={isAdminUser ? <Navigate to="/admin" replace /> : <Home />}
+                />
                 <Route path="/health" element={<ProtectedRoute><Health /></ProtectedRoute>} />
                 <Route path="/emergency" element={<Emergency />} />
                 <Route path="/blood" element={<Blood />} />

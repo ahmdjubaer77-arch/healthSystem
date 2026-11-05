@@ -367,6 +367,11 @@ export const updateAdminUserRole = async (accessToken, id, role) => requestAdmin
   body: JSON.stringify({ role }),
 })
 
+export const deleteAdminUser = async (accessToken, id) => requestAdminApi(`/users/${id}`, {
+  accessToken,
+  method: 'DELETE',
+})
+
 export const getAdminProviders = async (accessToken, query = {}) => {
   const params = new URLSearchParams()
   Object.entries(query).forEach(([key, value]) => {

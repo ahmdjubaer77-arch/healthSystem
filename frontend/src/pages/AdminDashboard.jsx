@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminBreadcrumb from '../components/admin/AdminBreadcrumb'
+import AdminActivityChart from '../components/admin/AdminActivityChart'
 import AdminPageContainer from '../components/admin/AdminPageContainer'
 import AdminPageHeader from '../components/admin/AdminPageHeader'
 import DashboardSection from '../components/admin/DashboardSection'
@@ -97,7 +98,7 @@ function AdminDashboard() {
 
   if (loading) {
     return (
-      <AdminPageContainer>
+      <AdminPageContainer className="admin-dashboard-overview">
         <AdminBreadcrumb items={[]} />
         <AdminPageHeader eyebrow="Overview" title="Admin dashboard" description="Loading live platform statistics…" />
         <LoadingState message="Loading dashboard summary…" />
@@ -107,7 +108,7 @@ function AdminDashboard() {
 
   if (error) {
     return (
-      <AdminPageContainer>
+      <AdminPageContainer className="admin-dashboard-overview">
         <AdminBreadcrumb items={[]} />
         <AdminPageHeader eyebrow="Overview" title="Admin dashboard" description="The dashboard could not load its latest data." />
         <ErrorState
@@ -126,7 +127,7 @@ function AdminDashboard() {
   const totals = summary?.totals || {}
 
   return (
-    <AdminPageContainer>
+    <AdminPageContainer className="admin-dashboard-overview">
       <AdminBreadcrumb items={[]} />
       <AdminPageHeader
         eyebrow="Overview"
@@ -141,7 +142,16 @@ function AdminDashboard() {
         </div>
       )}
 
-      <section className="admin-stat-grid grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" aria-label="Platform statistics">
+      <div className="mt-6">
+        <DashboardSection
+          title="Platform activity"
+          description="Daily registrations and service requests · last 7 days"
+        >
+          <AdminActivityChart activity={summary?.activity} />
+        </DashboardSection>
+      </div>
+
+      <section className="admin-stat-grid mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" aria-label="Platform statistics">
         {statCards.map((stat) => (
           <Link
             key={stat.key}
