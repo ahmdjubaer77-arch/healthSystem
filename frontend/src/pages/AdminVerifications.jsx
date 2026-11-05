@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useEffect, useState } from 'react'
 import { Ambulance, Building2, CheckCircle2, Filter, Pill, Search, ShieldAlert, ShieldCheck, Stethoscope, XCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -196,7 +197,7 @@ function AdminVerifications() {
         <div className="flex items-center gap-2 text-sm font-medium text-slate-200"><Filter size={16} className="text-cyan-300" /> Filters</div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="relative xl:col-span-2"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input name="search" value={filters.search} onChange={updateFilter} onKeyDown={(event) => event.key === 'Enter' && applyFilters()} placeholder={`Search ${PROVIDER_TABS.find((tab) => tab.type === providerType)?.label.toLowerCase()}`} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-3 text-sm text-white outline-none focus:border-cyan-300/30" /></label>
-          <select name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All verification statuses</option>{STATUS_OPTIONS.map((status) => <option key={status}>{status}</option>)}</select>
+          <ThemedSelect name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All verification statuses</option>{STATUS_OPTIONS.map((status) => <option key={status}>{status}</option>)}</ThemedSelect>
           <div className="flex gap-2"><Button onClick={applyFilters} className="flex-1"><Search size={15} /> Apply filters</Button><Button variant="secondary" icon={false} onClick={clearFilters}>Clear</Button></div>
         </div>
       </GlassCard>

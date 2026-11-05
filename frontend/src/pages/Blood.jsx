@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import BloodDonorCard from '../components/blood/BloodDonorCard'
 import BloodFilters from '../components/blood/BloodFilters'
 import BloodGroupSelector from '../components/blood/BloodGroupSelector'
 import BloodHero from '../components/blood/BloodHero'
 import BloodMatchingInfo from '../components/blood/BloodMatchingInfo'
+import BloodRequestCard from '../components/blood/BloodRequestCard'
 import BloodSafetyNotice from '../components/blood/BloodSafetyNotice'
 import BloodSearch from '../components/blood/BloodSearch'
 import DonorDetails from '../components/blood/DonorDetails'
@@ -12,7 +13,7 @@ import GlassCard from '../components/common/GlassCard'
 import SectionHeader from '../components/common/SectionHeader'
 import LoadingState from '../components/common/LoadingState'
 import ErrorState from '../components/common/ErrorState'
-import { getBloodDonors } from '../services/api'
+import { getBloodDonors, getPublicBloodRequests } from '../services/api'
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
@@ -23,6 +24,7 @@ const defaultLocation = {
 }
 
 const PAGE_SIZE = 20
+const REQUEST_PAGE_SIZE = 6
 
 function Blood() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -36,6 +38,12 @@ function Blood() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reloadKey, setReloadKey] = useState(0)
+  const [bloodRequests, setBloodRequests] = useState([])
+  const [requestPagination, setRequestPagination] = useState({ page: 1, limit: REQUEST_PAGE_SIZE, total: 0, pages: 0 })
+  const [requestPage, setRequestPage] = useState(1)
+  const [requestLoading, setRequestLoading] = useState(true)
+  const [requestError, setRequestError] = useState('')
+  const [requestReloadKey, setRequestReloadKey] = useState(0)
 
   useEffect(() => {
     let current = true
@@ -59,6 +67,28 @@ function Blood() {
     })
     return () => { current = false }
   }, [filters.availability, location, pagination.page, reloadKey, search, selectedGroup])
+
+  useEffect(() => {
+    let current = true
+    setRequestLoading(true)
+    setRequestError('')
+    getPublicBloodRequests({ page: requestPage, limit: REQUEST_PAGE_SIZE })
+      .then((result) => {
+        if (!Array.isArray(result?.requests) || !result?.pagination) {
+          throw new Error('The blood request service returned invalid listing data.')
+        }
+        if (!current) return
+        setBloodRequests(result.requests)
+        setRequestPagination(result.pagination)
+      })
+      .catch((requestError) => {
+        if (current) setRequestError(requestError.message)
+      })
+      .finally(() => {
+        if (current) setRequestLoading(false)
+      })
+    return () => { current = false }
+  }, [requestPage, requestReloadKey])
 
   useEffect(() => {
     const params = new URLSearchParams({ category: 'blood', bloodGroup: selectedGroup })
@@ -94,6 +124,43 @@ function Blood() {
       />
 
       <BloodHero />
+
+      <section className="space-y-4" aria-labelledby="public-blood-requests-title">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100/80">Verified public listings</p>
+            <h2 id="public-blood-requests-title" className="mt-2 text-2xl font-bold text-white">Blood requests</h2>
+            <p className="mt-1 text-sm text-slate-300">Administrator-approved requests, visible to everyone.</p>
+          </div>
+          <Link to="/blood/request" className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10">
+            View all &amp; submit a request
+          </Link>
+        </div>
+
+        {requestError && <ErrorState message={requestError} onRetry={() => setRequestReloadKey((key) => key + 1)} />}
+        {requestLoading && <LoadingState label="Loading verified blood requests" />}
+        {!requestLoading && !requestError && bloodRequests.length === 0 && (
+          <GlassCard className="p-5 text-sm text-slate-200">
+            No verified blood requests are listed right now. Check back later or submit a request for administrator review.
+          </GlassCard>
+        )}
+        {!requestLoading && !requestError && bloodRequests.length > 0 && (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {bloodRequests.map((request) => <BloodRequestCard key={request.id} request={request} />)}
+            </div>
+            {requestPagination.pages > 1 && (
+              <div className="flex items-center justify-between gap-3 text-sm text-slate-300">
+                <span>{requestPagination.total} requests · Page {requestPagination.page} of {requestPagination.pages}</span>
+                <div className="flex gap-2">
+                  <button type="button" disabled={requestPage <= 1 || requestLoading} onClick={() => setRequestPage((page) => page - 1)} className="rounded-xl border border-white/10 px-3 py-2 disabled:opacity-40">Previous</button>
+                  <button type="button" disabled={requestPage >= requestPagination.pages || requestLoading} onClick={() => setRequestPage((page) => page + 1)} className="rounded-xl border border-white/10 px-3 py-2 disabled:opacity-40">Next</button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </section>
 
       <div className="grid gap-4 md:grid-cols-3">
         <GlassCard className="p-5">

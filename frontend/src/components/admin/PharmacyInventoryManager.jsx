@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { useEffect, useState } from 'react'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import {
@@ -134,10 +135,10 @@ function PharmacyInventoryManager({ pharmacy, accessToken, canUpdate, onClose })
               </label>
               <label className="text-sm text-[var(--page-text)]">
                 <span className="mb-1.5 block">Availability</span>
-                <select value={form.availability} onChange={(event) => setForm((current) => ({ ...current, availability: event.target.value }))} className="h-10 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 outline-none focus:border-[var(--page-accent)]">
+                <ThemedSelect value={form.availability} onChange={(event) => setForm((current) => ({ ...current, availability: event.target.value }))} className="h-10 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 outline-none focus:border-[var(--page-accent)]">
                   <option value="AVAILABLE">Available</option>
                   <option value="UNAVAILABLE">Unavailable</option>
-                </select>
+                </ThemedSelect>
               </label>
               <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-5">
                 <Button type="submit" disabled={saving}><Plus size={15} />{saving ? 'Saving…' : editingId ? 'Save changes' : 'Add listing'}</Button>

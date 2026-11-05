@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useEffect, useState } from 'react'
 import { Droplets, Filter, MapPin, Plus, Search, ShieldCheck, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -96,10 +97,10 @@ function DonorForm({ form, onChange, onClose, onSubmit, saving, editing, verific
             </div>
             <label className="sm:col-span-2">
               <span className="mb-2 block text-sm font-medium text-slate-200">Patient account</span>
-              <select value={selectedPatientId} onChange={(event) => onPatientSelect(event.target.value)} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40">
+              <ThemedSelect value={selectedPatientId} onChange={(event) => onPatientSelect(event.target.value)} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40">
                 <option value="">Select a patient account</option>
                 {patientAccounts.map((patient) => <option key={patient.id} value={patient.id}>{patient.name} · {patient.phone || 'No phone'}{patient.bloodGroup ? ` · ${patient.bloodGroup}` : ''}</option>)}
-              </select>
+              </ThemedSelect>
             </label>
           </>}
           {!editing && donorMode === 'STANDALONE' && <p className="sm:col-span-2 text-xs text-slate-400">This creates a donor record without creating sign-in credentials. Existing phone numbers must be linked to their patient account instead.</p>}
@@ -109,11 +110,11 @@ function DonorForm({ form, onChange, onClose, onSubmit, saving, editing, verific
           </label>)}
           <label>
             <span className="mb-2 block text-sm font-medium text-slate-200">Blood group</span>
-            <select name="bloodGroup" value={form.bloodGroup} onChange={onChange} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40"><option value="">Select blood group</option>{BLOOD_GROUPS.map((group) => <option key={group}>{group}</option>)}</select>
+            <ThemedSelect name="bloodGroup" value={form.bloodGroup} onChange={onChange} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40"><option value="">Select blood group</option>{BLOOD_GROUPS.map((group) => <option key={group}>{group}</option>)}</ThemedSelect>
           </label>
           <label>
             <span className="mb-2 block text-sm font-medium text-slate-200">Availability status</span>
-            <select name="availability" value={form.availability} onChange={onChange} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40"><option value="UNAVAILABLE">Unavailable</option><option value="AVAILABLE" disabled={['REJECTED', 'SUSPENDED'].includes(verificationStatus)}>Available</option></select>
+            <ThemedSelect name="availability" value={form.availability} onChange={onChange} required className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/40"><option value="UNAVAILABLE">Unavailable</option><option value="AVAILABLE" disabled={['REJECTED', 'SUSPENDED'].includes(verificationStatus)}>Available</option></ThemedSelect>
           </label>
           <label>
             <span className="mb-2 block text-sm font-medium text-slate-200">Last donation date (optional)</span>
@@ -121,7 +122,7 @@ function DonorForm({ form, onChange, onClose, onSubmit, saving, editing, verific
           </label>
           <label>
             <span className="mb-2 block text-sm font-medium text-slate-200">Preferred contact (optional)</span>
-            <select name="preferredContactMethod" value={form.preferredContactMethod} onChange={onChange} className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">Not specified</option><option value="PHONE">Phone call</option><option value="SMS">SMS</option><option value="EMAIL">Email</option><option value="WHATSAPP">WhatsApp</option></select>
+            <ThemedSelect name="preferredContactMethod" value={form.preferredContactMethod} onChange={onChange} className="h-11 w-full rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">Not specified</option><option value="PHONE">Phone call</option><option value="SMS">SMS</option><option value="EMAIL">Email</option><option value="WHATSAPP">WhatsApp</option></ThemedSelect>
           </label>
           <label className="sm:col-span-2 flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-200">
             <input name="phoneConsent" type="checkbox" checked={form.phoneConsent} onChange={onChange} className="h-4 w-4 accent-cyan-300" />
@@ -162,7 +163,7 @@ function DonorDetails({ donor, loading, canModerate, availability, onAvailabilit
 
         {donor.notes && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p className="text-[10px] uppercase tracking-widest text-slate-500">Additional notes</p><p className="mt-2 whitespace-pre-wrap text-sm text-slate-300">{donor.notes}</p></div>}
         {canModerate && <>
-          <section className="mt-7 rounded-2xl border border-white/10 bg-white/[0.03] p-4"><div className="flex items-center gap-2 text-sm font-medium text-white"><Droplets size={17} className="text-rose-300" /> Availability</div><div className="mt-4 flex flex-wrap items-center gap-2"><select aria-label="Donor availability" value={availability} onChange={(event) => onAvailabilityChange(event.target.value)} disabled={['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus)} className="h-10 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none disabled:opacity-50">{AVAILABILITY.map((status) => <option key={status} value={status} disabled={status === 'AVAILABLE' && ['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus)}>{status}</option>)}</select><Button size="sm" disabled={loading || ['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus) || availability === donor.availability} onClick={onSaveAvailability}>Update availability</Button></div>{donor.verificationStatus === 'PENDING' && <p className="mt-3 text-xs leading-5 text-slate-500">Pending donors stay hidden from public search until verified.</p>}</section>
+          <section className="mt-7 rounded-2xl border border-white/10 bg-white/[0.03] p-4"><div className="flex items-center gap-2 text-sm font-medium text-white"><Droplets size={17} className="text-rose-300" /> Availability</div><div className="mt-4 flex flex-wrap items-center gap-2"><ThemedSelect aria-label="Donor availability" value={availability} onChange={(event) => onAvailabilityChange(event.target.value)} disabled={['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus)} className="h-10 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none disabled:opacity-50">{AVAILABILITY.map((status) => <option key={status} value={status} disabled={status === 'AVAILABLE' && ['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus)}>{status}</option>)}</ThemedSelect><Button size="sm" disabled={loading || ['REJECTED', 'SUSPENDED'].includes(donor.verificationStatus) || availability === donor.availability} onClick={onSaveAvailability}>Update availability</Button></div>{donor.verificationStatus === 'PENDING' && <p className="mt-3 text-xs leading-5 text-slate-500">Pending donors stay hidden from public search until verified.</p>}</section>
           <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4"><div className="flex items-center gap-2 text-sm font-medium text-white"><ShieldCheck size={17} className="text-cyan-300" /> Donor actions</div><div className="mt-4 flex flex-wrap gap-2">{donor.verificationStatus === 'PENDING' && <><Button size="sm" disabled={loading} onClick={() => onAction('verify')}>Verify donor</Button><Button size="sm" variant="emergency" disabled={loading} onClick={() => onAction('reject')}>Reject verification</Button></>}{donor.verificationStatus !== 'SUSPENDED' && <Button size="sm" variant="secondary" disabled={loading} onClick={() => onAction('suspend')}>Suspend donor</Button>}{donor.verificationStatus === 'SUSPENDED' && <Button size="sm" disabled={loading} onClick={() => onAction('restore')}>Restore donor</Button>}</div></section>
         </>}
         <p className="mt-6 text-xs leading-5 text-slate-600">Only donor contact details needed for administration are shown here.</p>
@@ -385,9 +386,9 @@ function AdminBloodDonors() {
         <div className="flex items-center gap-2 text-sm font-medium text-slate-200"><Filter size={16} className="text-cyan-300" /> Donor filters</div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="relative xl:col-span-2"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input name="search" value={filters.search} onChange={updateFilter} onKeyDown={(event) => event.key === 'Enter' && applyFilters()} placeholder="Search donor or location" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-3 text-sm text-white outline-none focus:border-cyan-300/30" /></label>
-          <select name="bloodGroup" value={filters.bloodGroup} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All blood groups</option>{BLOOD_GROUPS.map((group) => <option key={group}>{group}</option>)}</select>
-          <select name="availability" value={filters.availability} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All availability</option>{AVAILABILITY.map((status) => <option key={status}>{status}</option>)}</select>
-          <select name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All verification statuses</option>{['PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED'].map((status) => <option key={status}>{status}</option>)}</select>
+          <ThemedSelect name="bloodGroup" value={filters.bloodGroup} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All blood groups</option>{BLOOD_GROUPS.map((group) => <option key={group}>{group}</option>)}</ThemedSelect>
+          <ThemedSelect name="availability" value={filters.availability} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All availability</option>{AVAILABILITY.map((status) => <option key={status}>{status}</option>)}</ThemedSelect>
+          <ThemedSelect name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none"><option value="">All verification statuses</option>{['PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED'].map((status) => <option key={status}>{status}</option>)}</ThemedSelect>
           {['division', 'district', 'upazila'].map((field) => <label key={field} className="relative"><MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input name={field} value={filters[field]} onChange={updateFilter} onKeyDown={(event) => event.key === 'Enter' && applyFilters()} placeholder={field[0].toUpperCase() + field.slice(1)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white outline-none" /></label>)}
           <div className="flex gap-2 md:col-span-2"><Button onClick={applyFilters} className="flex-1"><Search size={15} /> Apply filters</Button><Button variant="secondary" icon={false} onClick={clearFilters}>Clear</Button></div>
         </div>

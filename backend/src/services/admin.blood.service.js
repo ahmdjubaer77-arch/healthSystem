@@ -55,6 +55,8 @@ function sanitizeRequest(request) {
     unit: request.unit,
     requiredAt: request.requiredAt || null,
     urgency: request.urgency || 'STANDARD',
+    requestNotes: request.requestNotes || '',
+    contactPhoneConsent: Boolean(request.contactPhoneConsent),
     hospitalName: request.hospitalName || null,
     division: request.division || null,
     district: request.district || null,

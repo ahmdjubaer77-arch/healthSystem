@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { Filter, RotateCcw } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
 
@@ -28,11 +29,11 @@ function DoctorFilters({ filters, onChange, onClear }) {
         </label>)}
         <label className="block text-sm text-slate-200">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Availability</span>
-          <select value={filters.availability} onChange={(event) => onChange('availability', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
+          <ThemedSelect value={filters.availability} onChange={(event) => onChange('availability', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
             <option value="">Any active status</option>
             <option value="AVAILABLE">Available</option>
             <option value="BUSY">Busy</option>
-          </select>
+          </ThemedSelect>
         </label>
       </div>
       <div className="mt-5 flex items-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-500/10 p-3 text-sm text-cyan-50">

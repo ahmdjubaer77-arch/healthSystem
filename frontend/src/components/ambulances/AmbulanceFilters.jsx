@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { Filter, RotateCcw } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
 
@@ -10,11 +11,11 @@ function AmbulanceFilters({ operationalStatus, onStatusChange, onClear }) {
       </div>
       <label className="block max-w-sm text-sm text-slate-200">
         <span className="mb-1.5 block text-xs font-medium text-slate-300">Provider status</span>
-        <select value={operationalStatus} onChange={(event) => onStatusChange(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/20 px-3 py-2.5 text-sm text-white transition-shadow focus:border-white/10 focus:outline-none focus:ring-0 focus-visible:shadow-[0_0_0_3px_rgba(34,211,238,0.16)]">
+        <ThemedSelect value={operationalStatus} onChange={(event) => onStatusChange(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/20 px-3 py-2.5 text-sm text-white transition-shadow focus:border-white/10 focus:outline-none focus:ring-0 focus-visible:shadow-[0_0_0_3px_rgba(34,211,238,0.16)]">
           <option value="AVAILABLE">Available</option>
           <option value="BUSY">Busy</option>
           <option value="">Any active status</option>
-        </select>
+        </ThemedSelect>
       </label>
       <div className="mt-4 flex items-start gap-2 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-2.5 text-xs leading-5 text-slate-400"><Filter size={14} className="mt-0.5 shrink-0 text-slate-300" />Provider-reported status is not a dispatch or assignment confirmation.</div>
     </GlassCard>

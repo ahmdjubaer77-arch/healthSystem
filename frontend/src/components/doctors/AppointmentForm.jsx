@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { AlertTriangle, CalendarRange, CheckCircle2, Phone, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import GlassCard from '../common/GlassCard'
@@ -72,11 +73,11 @@ function AppointmentForm({ doctor }) {
 
         <label className="block text-sm text-slate-200">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Consultation type</span>
-          <select value={values.consultationType} onChange={(event) => handleChange('consultationType', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
+          <ThemedSelect value={values.consultationType} onChange={(event) => handleChange('consultationType', event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
             <option>In-person</option>
             <option>Online</option>
             <option>Both</option>
-          </select>
+          </ThemedSelect>
         </label>
 
         <label className="block text-sm text-slate-200">

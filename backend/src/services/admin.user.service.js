@@ -27,6 +27,7 @@ function buildUserResponse(user) {
     name: user.name,
     email: user.donorStandalone ? null : user.email,
     phone: user.phone || null,
+    profilePicture: user.profilePicture?.url ? { url: user.profilePicture.url } : null,
     role: user.role,
     location: user.location || null,
     accountStatus: user.accountStatus,

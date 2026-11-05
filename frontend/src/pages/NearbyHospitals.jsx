@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { divIcon } from 'leaflet'
@@ -173,19 +174,19 @@ function NearbyHospitals() {
           </label>
           <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-slate-200">
             <SlidersHorizontal size={16} className="text-cyan-200" />
-            <select value={type} onChange={(event) => setType(event.target.value)} className="w-full bg-transparent text-sm text-white outline-none">
+            <ThemedSelect value={type} onChange={(event) => setType(event.target.value)} className="w-full bg-transparent text-sm text-white outline-none">
               <option value="" className="bg-slate-900">All types</option>
               <option value="Government" className="bg-slate-900">Government</option>
               <option value="Private" className="bg-slate-900">Private</option>
-            </select>
+            </ThemedSelect>
           </label>
           <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-slate-200">
             <MapPin size={16} className="text-cyan-200" />
-            <select value={sort} onChange={(event) => setSort(event.target.value)} className="w-full bg-transparent text-sm text-white outline-none">
+            <ThemedSelect value={sort} onChange={(event) => setSort(event.target.value)} className="w-full bg-transparent text-sm text-white outline-none">
               {sortOptions.map((option) => (
                 <option key={option} value={option} className="bg-slate-900">{option === 'nearest' ? 'Nearest' : 'Farthest'}</option>
               ))}
-            </select>
+            </ThemedSelect>
           </label>
         </div>
 

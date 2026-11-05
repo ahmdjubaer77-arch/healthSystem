@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { useState } from 'react'
 import { CalendarDays, ChevronRight, Clock3, Eye, PencilLine, Plus, Trash2, X } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
@@ -361,9 +362,9 @@ function MedicalTimeline({
             {!editingId && (
               <label className="mb-4 grid gap-1.5 text-sm text-slate-200">
                 Record type
-                <select value={form.recordType} onChange={(event) => updateFormField('recordType', event.target.value)} className={inputClass}>
+                <ThemedSelect value={form.recordType} onChange={(event) => updateFormField('recordType', event.target.value)} className={inputClass}>
                   {Object.entries(recordTypes).map(([type, config]) => <option value={type} key={type}>{config.label}</option>)}
-                </select>
+                </ThemedSelect>
               </label>
             )}
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={submitRecord}>
@@ -383,15 +384,15 @@ function MedicalTimeline({
                     {field.type === 'textarea' ? (
                       <textarea {...shared} rows={3} className={`${inputClass} resize-y`} />
                     ) : field.type === 'select' ? (
-                      <select {...shared} className={inputClass}>
+                      <ThemedSelect {...shared} className={inputClass}>
                         <option value="">Select status</option>
                         {field.options.map((option) => <option key={option} value={option}>{option[0] + option.slice(1).toLowerCase()}</option>)}
-                      </select>
+                      </ThemedSelect>
                     ) : field.type === 'select-document' ? (
-                      <select {...shared} className={inputClass}>
+                      <ThemedSelect {...shared} className={inputClass}>
                         <option value="">No secure file linked</option>
                         {documents.map((document) => <option key={document.id} value={document.id}>{document.title}</option>)}
-                      </select>
+                      </ThemedSelect>
                     ) : (
                       <input {...shared} type={field.type || 'text'} maxLength={field.type === 'date' ? undefined : 500} />
                     )}

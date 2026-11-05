@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const BloodRequest = require('../src/models/BloodRequest')
 const AdminAuditLog = require('../src/models/AdminAuditLog')
 const bloodService = require('../src/services/admin.blood.service')
+const publicBloodService = require('../src/services/blood.request.service')
 const { ADMIN_ROLE_PERMISSIONS, SUPER_ADMIN_ROLE_PERMISSIONS } = require('../src/constants/admin.permissions')
 const { adminPermission, requireAdminPermission } = require('../src/middleware/admin.permission.middleware')
 
@@ -98,7 +99,14 @@ test('blood request active filter, details, moderation, flags, and permissions',
     permissions: ['blood.read', 'blood.moderate'],
     ipAddress: '127.0.0.1',
   }
-  const pending = createRequest()
+  const pending = createRequest({
+    requestNotes: 'Please use the north entrance.',
+    contactPhone: 'private-phone',
+    contactPerson: 'Private Contact',
+    contactPhoneConsent: true,
+    requiredAt: new Date('2026-07-14T12:00:00.000Z'),
+    urgency: 'CRITICAL',
+  })
   const pendingForVerification = createRequest()
   const active = createRequest({
     requesterName: 'Active Requester',
@@ -114,6 +122,11 @@ test('blood request active filter, details, moderation, flags, and permissions',
   assert.equal(activePage.pagination.total, 1)
   assert.equal(activePage.requests[0].id, active._id.toString())
   assert.equal(activePage.requests[0].requesterName, 'Active Requester')
+  const adminInbox = await bloodService.getBloodRequests({})
+  const submittedRequest = adminInbox.requests.find((request) => request.id === pending._id.toString())
+  assert.ok(submittedRequest)
+  assert.equal(submittedRequest.requestNotes, pending.requestNotes)
+  assert.equal(submittedRequest.urgency, pending.urgency)
   assert.equal((await bloodService.getBloodRequests({ bloodGroup: 'A+' })).pagination.total, 1)
   assert.equal((await bloodService.getBloodRequests({ location: 'Gazipur' })).pagination.total, 1)
   assert.equal((await bloodService.getBloodRequests({ search: 'Active Requester' })).pagination.total, 1)
@@ -123,6 +136,12 @@ test('blood request active filter, details, moderation, flags, and permissions',
 
   const details = await bloodService.getBloodRequestById(pending._id.toString())
   assert.equal(details.requesterName, pending.requesterName)
+  assert.equal(details.requestNotes, pending.requestNotes)
+  assert.equal(details.urgency, pending.urgency)
+  assert.equal(details.requiredAt, pending.requiredAt)
+  assert.equal(details.contactPhoneConsent, true)
+  assert.equal(Object.hasOwn(details, 'contactPhone'), false)
+  assert.equal(Object.hasOwn(details, 'contactPerson'), false)
   assert.equal(Object.hasOwn(details, 'requesterId'), false)
   assert.equal(Object.hasOwn(details, 'hospitalId'), false)
   assert.equal(Object.hasOwn(details, 'metadata'), false)
@@ -170,6 +189,8 @@ test('blood request active filter, details, moderation, flags, and permissions',
   )
   assert.equal(verified.verificationStatus, 'VERIFIED')
   assert.equal(verified.status, 'ACTIVE')
+  const publicRequests = await publicBloodService.getPublicBloodRequests({})
+  assert.ok(publicRequests.requests.some((request) => request.id === pendingForVerification._id.toString()))
   const rejectedRequest = createRequest()
   requests.push(rejectedRequest)
   const rejected = await bloodService.updateBloodRequestVerification(

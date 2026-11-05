@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { Download, Eye, FileText, Search, SortAsc } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
@@ -153,7 +154,7 @@ function DocumentList({ documents }) {
             />
           </div>
 
-          <select
+          <ThemedSelect
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             aria-label="Filter by category"
@@ -165,7 +166,7 @@ function DocumentList({ documents }) {
             <option>Imaging</option>
             <option>Vaccination</option>
             <option>Other</option>
-          </select>
+          </ThemedSelect>
 
           <button
             type="button"

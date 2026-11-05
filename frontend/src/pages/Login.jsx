@@ -1,6 +1,6 @@
 import { Activity, Eye, EyeOff, HeartPulse, LockKeyhole, Mail, ShieldCheck, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
@@ -10,7 +10,6 @@ function Login() {
   const { t } = useLanguage()
   const { addToast } = useToast()
   const navigate = useNavigate()
-  const location = useLocation()
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -36,7 +35,7 @@ function Login() {
   if (isAuthenticated) {
     const destination = ['ADMIN', 'SUPER_ADMIN'].includes(user?.role)
       ? '/admin'
-      : location.state?.from || '/profile'
+      : '/'
     return <Navigate to={destination} replace />
   }
 
@@ -67,7 +66,7 @@ function Login() {
 
       const destination = ['ADMIN', 'SUPER_ADMIN'].includes(authenticatedUser?.role)
         ? '/admin'
-        : location.state?.from || '/profile'
+        : '/'
       navigate(destination, { replace: true })
     } catch (error) {
       addToast({

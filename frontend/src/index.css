@@ -8642,3 +8642,48 @@ body {
 :root[data-theme='dark'] .admin-profile-panel .admin-profile-photo-action:hover:not(:disabled) {
   background: var(--color-primary-hover) !important;
 }
+
+.themed-select-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.themed-select-trigger {
+  border: 1px solid var(--page-border) !important;
+  border-radius: 0.9rem !important;
+  background-color: var(--page-surface-raised) !important;
+  color: var(--page-text) !important;
+}
+
+.themed-select-trigger:hover:not(:disabled) {
+  border-color: var(--page-accent) !important;
+  background-color: var(--page-surface) !important;
+}
+
+.themed-select-trigger:focus-visible {
+  outline: 2px solid var(--page-accent) !important;
+  outline-offset: 2px;
+}
+
+.themed-select-menu {
+  border-color: var(--page-border);
+  background: var(--page-surface-raised);
+  color: var(--page-text);
+}
+
+.themed-select-option {
+  color: var(--page-text);
+}
+
+.themed-select-option:hover:not(:disabled),
+.themed-select-option:focus-visible,
+.themed-select-option.is-selected {
+  background: color-mix(in srgb, var(--page-accent) 13%, transparent);
+  color: var(--page-accent-strong);
+}

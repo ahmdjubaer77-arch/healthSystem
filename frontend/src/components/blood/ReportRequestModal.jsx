@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { AlertCircle, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { reportPublicBloodRequest } from '../../services/api'
@@ -58,9 +59,9 @@ function ReportRequestModal({ isOpen, requestId, accessToken, onClose, onSubmitt
         <form onSubmit={submit} className="mt-5 space-y-4" aria-busy={saving}>
           <label className="block text-sm font-medium text-[var(--page-text)]">
             <span className="mb-2 block">Reason</span>
-            <select value={reason} onChange={(event) => setReason(event.target.value)} className="h-11 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 text-sm text-[var(--page-text)] outline-none focus:border-[var(--page-accent)]">
+            <ThemedSelect value={reason} onChange={(event) => setReason(event.target.value)} className="h-11 w-full rounded-lg border border-[var(--page-border)] bg-[var(--page-surface)] px-3 text-sm text-[var(--page-text)] outline-none focus:border-[var(--page-accent)]">
               {reportReasons.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
+            </ThemedSelect>
           </label>
 
           <p className="text-sm leading-6 text-[var(--page-muted)]">Reports are sent to the moderation queue. One report is accepted per signed-in account for each listing.</p>

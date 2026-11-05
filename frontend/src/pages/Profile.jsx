@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Check, Copy, Edit3, HeartPulse, ImagePlus, KeyRound, Save, ShieldCheck, Trash2, UserRound, X } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -647,7 +648,7 @@ function Profile() {
               </ProfileField>
 
               <ProfileField id="edit-gender" label="Gender" onClear={() => updateEditField('gender', '')}>
-                <select
+                <ThemedSelect
                   id="edit-gender"
                   value={editForm.gender}
                   onChange={(event) => updateEditField('gender', event.target.value)}
@@ -658,7 +659,7 @@ function Profile() {
                   <option value="MALE">Male</option>
                   <option value="OTHER">Other</option>
                   <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
-                </select>
+                </ThemedSelect>
               </ProfileField>
 
               <ProfileField id="edit-phone" label="Mobile number" onClear={() => updateEditField('phone', '')}>
@@ -694,7 +695,7 @@ function Profile() {
               </ProfileField>
 
               <ProfileField id="edit-blood-group" label="Blood group" onClear={() => updateEditField('bloodGroup', '')}>
-                <select
+                <ThemedSelect
                   id="edit-blood-group"
                   value={editForm.bloodGroup}
                   onChange={(event) => updateEditField('bloodGroup', event.target.value)}
@@ -704,7 +705,7 @@ function Profile() {
                   {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((group) => (
                     <option key={group} value={group}>{group}</option>
                   ))}
-                </select>
+                </ThemedSelect>
               </ProfileField>
             </div>
 

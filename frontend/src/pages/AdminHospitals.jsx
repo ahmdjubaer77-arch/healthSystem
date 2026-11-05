@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useEffect, useState } from 'react'
 import { Filter, MapPin, Pencil, Plus, Search, ShieldCheck, Building2, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -247,7 +248,7 @@ function AdminHospitals() {
         <div className="flex items-center gap-2 text-sm font-medium text-slate-200"><Filter size={16} className="text-cyan-300" /> Filters</div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <label className="relative xl:col-span-2"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input name="search" value={filters.search} onChange={updateFilter} onKeyDown={(event) => event.key === 'Enter' && applyFilters()} placeholder="Search name, contact, address, registration" className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-10 pr-3 text-sm text-white outline-none focus:border-cyan-300/30" /></label>
-          <select name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/30"><option value="">All verification statuses</option>{STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}</select>
+          <ThemedSelect name="verificationStatus" value={filters.verificationStatus} onChange={updateFilter} className="h-11 rounded-xl border border-white/10 bg-slate-900/80 px-3 text-sm text-white outline-none focus:border-cyan-300/30"><option value="">All verification statuses</option>{STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}</ThemedSelect>
           {['division', 'district', 'upazila'].map((field) => <label key={field} className="relative"><MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input name={field} value={filters[field]} onChange={updateFilter} onKeyDown={(event) => event.key === 'Enter' && applyFilters()} placeholder={field[0].toUpperCase() + field.slice(1)} className="h-11 w-full rounded-xl border border-white/10 bg-white/5 pl-9 pr-3 text-sm text-white outline-none focus:border-cyan-300/30" /></label>)}
           <div className="flex gap-2 md:col-span-2 xl:col-span-2"><Button onClick={applyFilters} className="flex-1"><Search size={15} /> Apply filters</Button><Button variant="secondary" icon={false} onClick={clearFilters}>Clear</Button></div>
         </div>

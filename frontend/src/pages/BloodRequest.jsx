@@ -114,7 +114,8 @@ function BloodRequest() {
                   <div>
                     <p className="font-semibold text-[var(--page-text)]">{request.bloodGroup} · {request.quantity} {request.unit}</p>
                     <p className="mt-1 text-sm text-[var(--page-muted)]">{request.hospitalName || 'Hospital not specified'}</p>
-                    <p className="mt-1 text-xs text-[var(--page-muted)]">Required by {formatDate(request.requiredAt)}</p>
+                    <p className="mt-1 text-xs text-[var(--page-muted)]">{request.urgency || 'STANDARD'} urgency · Required by {formatDate(request.requiredAt)}</p>
+                    {request.verificationReason && <p className="mt-2 max-w-sm text-xs leading-5 text-rose-600 dark:text-rose-300">Review update: {request.verificationReason}</p>}
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-[var(--page-text)]">{request.verificationStatus}</p>

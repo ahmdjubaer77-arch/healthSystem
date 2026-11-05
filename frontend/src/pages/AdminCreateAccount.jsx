@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { useState } from 'react'
 import { ShieldCheck, UserPlus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -89,9 +90,9 @@ function AdminCreateAccount() {
 
             <label>
               <span className="mb-2 block text-sm font-medium text-slate-200">Administrator role</span>
-              <select name="role" value={form.role} onChange={updateField} className="h-12 w-full rounded-xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-cyan-300/40">
+              <ThemedSelect name="role" value={form.role} onChange={updateField} className="h-12 w-full rounded-xl border border-white/10 bg-slate-900 px-4 text-sm text-white outline-none focus:border-cyan-300/40">
                 <option value="ADMIN">Administrator</option>
-              </select>
+              </ThemedSelect>
             </label>
 
             <label>

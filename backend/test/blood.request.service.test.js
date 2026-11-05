@@ -111,10 +111,24 @@ test('authenticated blood requests start pending and keep contact details privat
   assert.equal(Object.hasOwn(publicResult.requests[0], 'requestNotes'), false)
   assert.equal(publicResult.requests[0].contactPhone, '')
   await bloodRequestService.reportPublicBloodRequest(stored._id.toString(), userId.toString(), { reason: 'Wrong contact information' })
+  assert.equal(auditEntries[0].actorRole, 'PATIENT')
+  assert.equal(auditEntries[1].actorRole, 'PATIENT')
   await assert.rejects(
     bloodRequestService.reportPublicBloodRequest(stored._id.toString(), userId.toString(), { reason: 'Still incorrect' }),
     { statusCode: 409 },
   )
+})
+
+test('patient blood-request audit events pass audit-log schema validation', () => {
+  const auditEntry = new AdminAuditLog({
+    actorId: new mongoose.Types.ObjectId(),
+    actorRole: 'PATIENT',
+    action: 'BLOOD_REQUEST_CREATED',
+    entityType: 'BloodRequest',
+    entityId: new mongoose.Types.ObjectId(),
+  })
+
+  assert.equal(auditEntry.validateSync(), undefined)
 })
 
 test('public blood requests expose contact only after explicit consent and verification', async () => {

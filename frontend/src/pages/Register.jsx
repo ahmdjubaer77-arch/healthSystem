@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, LockKeyhole } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -172,20 +173,20 @@ function Register() {
                 </div>
                 <div className="register-field">
                   <label htmlFor="gender">Gender</label>
-                  <select id="gender" name="gender" value={form.gender} onChange={handleChange} className="register-control">
+                  <ThemedSelect id="gender" name="gender" value={form.gender} onChange={handleChange} className="register-control">
                     <option value="Female">Female</option>
                     <option value="Male">Male</option>
                     <option value="Other">Other</option>
-                  </select>
+                  </ThemedSelect>
                 </div>
                 <div className="register-field register-field-wide">
                   <label htmlFor="bloodGroup">Blood group <span>(optional)</span></label>
-                  <select id="bloodGroup" name="bloodGroup" value={form.bloodGroup} onChange={handleChange} className="register-control">
+                  <ThemedSelect id="bloodGroup" name="bloodGroup" value={form.bloodGroup} onChange={handleChange} className="register-control">
                     <option value="A+">A+</option><option value="A-">A-</option>
                     <option value="B+">B+</option><option value="B-">B-</option>
                     <option value="AB+">AB+</option><option value="AB-">AB-</option>
                     <option value="O+">O+</option><option value="O-">O-</option>
-                  </select>
+                  </ThemedSelect>
                 </div>
               </div>
             )}

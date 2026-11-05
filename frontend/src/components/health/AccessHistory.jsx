@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { useEffect, useMemo, useState } from 'react'
 import { LoaderCircle, ShieldCheck } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
@@ -77,7 +78,7 @@ function AccessHistory({ accessToken, records = [], documents = [], refreshKey =
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <label className="text-sm text-slate-300">
           Activity
-          <select
+          <ThemedSelect
             value={action}
             onChange={(event) => changeFilter(setAction, event.target.value)}
             className="mt-1 w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-white focus:border-cyan-300/60 focus:outline-none"
@@ -88,11 +89,11 @@ function AccessHistory({ accessToken, records = [], documents = [], refreshKey =
             <option value="ACCESS_DENIED">Denied attempts</option>
             <option value="SHARE_GRANTED">Consent granted</option>
             <option value="SHARE_REVOKED">Consent revoked</option>
-          </select>
+          </ThemedSelect>
         </label>
         <label className="text-sm text-slate-300">
           Result
-          <select
+          <ThemedSelect
             value={result}
             onChange={(event) => changeFilter(setResult, event.target.value)}
             className="mt-1 w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-white focus:border-cyan-300/60 focus:outline-none"
@@ -100,7 +101,7 @@ function AccessHistory({ accessToken, records = [], documents = [], refreshKey =
             <option value="">All results</option>
             <option value="SUCCESS">Successful</option>
             <option value="DENIED">Denied</option>
-          </select>
+          </ThemedSelect>
         </label>
       </div>
 

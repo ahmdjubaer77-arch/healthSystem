@@ -1,3 +1,4 @@
+import ThemedSelect from '../components/common/ThemedSelect'
 import {
   Activity,
   CalendarDays,
@@ -342,10 +343,10 @@ function HealthSetup() {
             <form onSubmit={saveProfile} className="grid gap-4 lg:grid-cols-2">
               <label className="rounded-2xl border border-white/10 bg-slate-950/20 p-4">
                 <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Blood group</span>
-                <select value={profile.bloodGroup} onChange={(event) => updateProfile('bloodGroup', event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-900/40 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50">
+                <ThemedSelect value={profile.bloodGroup} onChange={(event) => updateProfile('bloodGroup', event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-900/40 px-3 py-2.5 text-sm text-white outline-none focus:border-cyan-300/50">
                   <option value="">Select blood group</option>
                   {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bloodGroup) => <option key={bloodGroup}>{bloodGroup}</option>)}
-                </select>
+                </ThemedSelect>
               </label>
               <label className="rounded-2xl border border-white/10 bg-slate-950/20 p-4">
                 <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">Allergies</span>

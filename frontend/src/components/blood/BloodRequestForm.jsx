@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { AlertCircle, Droplets } from 'lucide-react'
 import { useState } from 'react'
 import { createBloodRequest } from '../../services/api'
@@ -87,16 +88,16 @@ function BloodRequestForm({ accessToken, user, onCreated }) {
       <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
         <label className={labelClass}>
           <span className="mb-2 block">Blood group</span>
-          <select value={form.bloodGroup} onChange={(event) => update('bloodGroup', event.target.value)} className={inputClass}>
+          <ThemedSelect value={form.bloodGroup} onChange={(event) => update('bloodGroup', event.target.value)} className={inputClass}>
             {bloodGroups.map((group) => <option key={group} value={group}>{group}</option>)}
-          </select>
+          </ThemedSelect>
         </label>
 
         <label className={labelClass}>
           <span className="mb-2 block">Units required</span>
-          <select value={form.quantity} onChange={(event) => update('quantity', event.target.value)} className={inputClass}>
+          <ThemedSelect value={form.quantity} onChange={(event) => update('quantity', event.target.value)} className={inputClass}>
             {Array.from({ length: 20 }, (_, index) => index + 1).map((quantity) => <option key={quantity} value={quantity}>{quantity}</option>)}
-          </select>
+          </ThemedSelect>
         </label>
 
         <label className={`${labelClass} md:col-span-2`}>
@@ -122,11 +123,11 @@ function BloodRequestForm({ accessToken, user, onCreated }) {
 
         <label className={labelClass}>
           <span className="mb-2 block">Urgency</span>
-          <select value={form.urgency} onChange={(event) => update('urgency', event.target.value)} className={inputClass}>
+          <ThemedSelect value={form.urgency} onChange={(event) => update('urgency', event.target.value)} className={inputClass}>
             <option value="STANDARD">Standard</option>
             <option value="URGENT">Urgent</option>
             <option value="CRITICAL">Critical</option>
-          </select>
+          </ThemedSelect>
         </label>
 
         <fieldset className="space-y-3 rounded-xl border border-[var(--page-border)] p-4 md:col-span-2">

@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Ambulance, ArrowRight, Building2, Droplet, MapPin, Search, Stethoscope } from 'lucide-react'
@@ -126,7 +127,7 @@ function QuickSearch() {
           <div className="quick-location-fields">
             <label className="quick-location-field" htmlFor="quick-division">
               <span>{t('division', 'Division')}</span>
-              <select
+              <ThemedSelect
                 id="quick-division"
                 value={location.division}
                 onChange={(event) => updateLocation('division', event.target.value)}
@@ -134,12 +135,12 @@ function QuickSearch() {
               >
                 <option value="">{t('homeAnyDivision', 'Any division')}</option>
                 {options.divisions.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              </ThemedSelect>
             </label>
 
             <label className="quick-location-field" htmlFor="quick-district">
               <span>{t('district', 'District')}</span>
-              <select
+              <ThemedSelect
                 id="quick-district"
                 value={location.district}
                 onChange={(event) => updateLocation('district', event.target.value)}
@@ -147,12 +148,12 @@ function QuickSearch() {
               >
                 <option value="">{t('homeAnyDistrict', 'Any district')}</option>
                 {options.districts.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              </ThemedSelect>
             </label>
 
             <label className="quick-location-field" htmlFor="quick-upazila">
               <span>{t('upazila', 'Upazila')}</span>
-              <select
+              <ThemedSelect
                 id="quick-upazila"
                 value={location.upazila}
                 onChange={(event) => updateLocation('upazila', event.target.value)}
@@ -160,12 +161,12 @@ function QuickSearch() {
               >
                 <option value="">{t('homeAnyUpazila', 'Any upazila')}</option>
                 {options.upazilas.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              </ThemedSelect>
             </label>
 
             <label className="quick-location-field" htmlFor="quick-area">
               <span>{t('area', 'Area')}</span>
-              <select
+              <ThemedSelect
                 id="quick-area"
                 value={location.area}
                 onChange={(event) => updateLocation('area', event.target.value)}
@@ -173,7 +174,7 @@ function QuickSearch() {
               >
                 <option value="">{selectedCategory === 'ambulance' ? t('homeAnyServiceArea', 'Any service area') : t('homeUnavailable', 'Not available')}</option>
                 {options.areas.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              </ThemedSelect>
             </label>
 
             <button type="submit" className="quick-location-submit" disabled={loadingOptions}>

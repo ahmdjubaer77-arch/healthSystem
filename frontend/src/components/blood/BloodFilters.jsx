@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { Filter, RotateCcw } from 'lucide-react'
 import GlassCard from '../common/GlassCard'
 
@@ -17,11 +18,11 @@ function BloodFilters({ availability, onAvailabilityChange, onClear }) {
 
       <label className="block max-w-sm text-sm text-slate-200">
         <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">Availability status</span>
-        <select value={availability} onChange={(event) => onAvailabilityChange(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
+        <ThemedSelect value={availability} onChange={(event) => onAvailabilityChange(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-slate-950/20 px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/70">
           <option value="AVAILABLE">Available</option>
           <option value="UNAVAILABLE">Unavailable</option>
           <option value="">Any availability</option>
-        </select>
+        </ThemedSelect>
       </label>
     </GlassCard>
   )

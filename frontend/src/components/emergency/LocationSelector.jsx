@@ -1,3 +1,4 @@
+import ThemedSelect from '../common/ThemedSelect'
 import { LocateFixed, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import GlassCard from '../common/GlassCard'
@@ -115,7 +116,7 @@ function LocationSelector({ selectedLocation, onChange }) {
         ].map(({ key, label, placeholder, choices, disabled }) => (
           <label key={key} className="block text-sm text-slate-200">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-slate-300">{label}</span>
-            <select
+            <ThemedSelect
               value={selectedLocation[key] || ''}
               onChange={(event) => updateLocation(key, event.target.value)}
               disabled={loadingOptions || disabled || choices.length === 0}
@@ -123,7 +124,7 @@ function LocationSelector({ selectedLocation, onChange }) {
             >
               <option value="">{placeholder}</option>
               {choices.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
+            </ThemedSelect>
           </label>
         ))}
       </div>
