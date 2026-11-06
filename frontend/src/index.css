@@ -4620,6 +4620,16 @@ body {
   }
 }
 
+.app-shell .themed-select-native {
+  width: 1px !important;
+  min-width: 1px !important;
+  max-width: 1px !important;
+  height: 1px !important;
+  min-height: 1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
 :root[data-theme='light'] .home-hero {
   border-color: var(--page-border);
   background: linear-gradient(100deg, #fff, #edf5f2);
@@ -8704,142 +8714,26 @@ body {
   }
 
   .app-shell:has(.home-page) {
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   .app-shell:has(.home-page) > div:has(.home-page) {
-    display: flex;
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    min-height: 0;
-    flex-direction: column;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .app-shell:has(.home-page) .navbar-shell {
-    flex: 0 0 auto;
-  }
-
-  .app-shell:has(.home-page) > div > footer {
-    display: none;
-  }
-
-  .app-shell:has(.home-page) > div > main {
-    display: flex;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    min-height: 0;
-    flex: 1;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: 0.5rem;
+  }
+
+  .app-shell:has(.home-page) > div > main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .home-page {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    min-height: 0;
-    flex: 0 0 auto;
-    grid-template-rows: auto auto;
-    gap: 0.65rem;
-    overflow: hidden;
-    padding-bottom: 0;
-  }
-
-  .home-page > .quick-access-shell,
-  .home-page > .home-emergency-section,
-  .home-page > .home-discovery-grid,
-  .home-page > .home-promo-grid,
-  .home-page > .home-featured-section,
-  .home-page > .home-trust-section {
-    display: none;
-  }
-
-  .home-hero {
-    min-height: 0;
-    gap: 0;
-    padding: 0.7rem 0.85rem;
-    border-radius: 0.85rem;
-  }
-
-  .home-hero-visual,
-  .home-hero-bangla,
-  .home-hero-description,
-  .home-hero-actions {
-    display: none;
-  }
-
-  .home-hero-kicker {
-    font-size: 0.62rem;
-  }
-
-  .home-hero h1,
-  .home-hero.is-bangla h1 {
-    margin-top: 0.3rem;
-    font-size: 1.25rem;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
-  }
-
-  .home-services-section {
-    display: grid;
-    grid-template-rows: auto auto;
-    gap: 0.4rem;
-  }
-
-  .home-directory-header {
-    min-height: 0;
-    margin: 0;
-  }
-
-  .home-directory-header .home-section-kicker {
-    font-size: 0.58rem;
-  }
-
-  .home-directory-header .home-section-title {
-    margin-top: 0.15rem;
-    font-size: 1rem;
-  }
-
-  .home-service-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
-    grid-auto-rows: minmax(3.5rem, auto);
-    gap: 0.45rem;
-  }
-
-  .home-service-card {
-    min-height: 0;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    align-items: center;
-    gap: 0.55rem;
-    overflow: hidden;
-    padding: 0.55rem 0.65rem;
-    border-radius: 0.75rem;
-  }
-
-  .home-service-icon {
-    width: 1.7rem;
-    height: 1.7rem;
-  }
-
-  .home-service-title {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: 0.72rem;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .home-service-detail,
-  .home-service-arrow {
-    display: none;
   }
 }
